@@ -47,11 +47,18 @@ export const CemedipPT = {
   },
   button: {
     root: {
-      class: 'transition-all rounded-2xl',
+      class: 'transition-all rounded-lg',
     },
     label: {
       class: 'px-2',
     },
+  },
+  paginator: {
+    first: { class: 'w-9 h-9 bg-surface-200 text-surface-700 rounded-lg' },
+    prev:  { class: 'w-9 h-9 bg-surface-200 text-surface-700 rounded-lg' },
+    next:  { class: 'w-9 h-9 bg-surface-200 text-surface-700 rounded-lg' },
+    last:  { class: 'w-9 h-9 bg-surface-200 text-surface-700 rounded-lg' },
+    page:  { class: 'w-9 h-9 bg-surface-200 text-surface-700 rounded-lg' },
   },
 };
 

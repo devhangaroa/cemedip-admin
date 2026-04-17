@@ -1,3 +1,10 @@
+@layer primeng {
+  .p-paginator-page-selected {
+    background-color: var(--p-primary-color) !important;
+    color: var(--p-primary-contrast-color) !important;
+  }
+}
+
 @layer components {
   .app-section-kicker {
     @apply text-surface-700 font-bold tracking-widest uppercase;
