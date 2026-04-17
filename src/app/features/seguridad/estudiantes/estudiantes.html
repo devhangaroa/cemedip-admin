@@ -2,8 +2,8 @@
 
   <!-- Encabezado -->
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold uppercase tracking-wide text-surface-700">
-      &lsaquo; Estudiantes
+    <h1 class="text-2xl font-bold tracking-wide text-surface-700">
+      ESTUDIANTES
     </h1>
     <p-button label="AGREGAR" icon="pi pi-plus-circle" severity="secondary"/>
   </div>
@@ -13,15 +13,15 @@
     <form [formGroup]="filtrosForm" (ngSubmit)="buscar()" class="flex flex-col gap-4">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Nombre</label>
+          <label class="text-xs font-semibold tracking-wide text-surface-500">NOMBRES</label>
           <input pInputText formControlName="nombres" placeholder="Nombre del estudiante" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Apellido</label>
+          <label class="text-xs font-semibold tracking-wide text-surface-500">APELLIDOS</label>
           <input pInputText formControlName="apellidos" placeholder="Apellido del estudiante" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Correo</label>
+          <label class="text-xs font-semibold tracking-wide text-surface-500">CORREO</label>
           <input pInputText formControlName="correo_institucional" placeholder="Correo del estudiante" />
         </div>
       </div>
@@ -48,15 +48,15 @@
 
   <!-- Tabla -->
   <div>
-    <table class="w-full text-sm border-separate border-spacing-y-1.5">
+    <table class="w-full text-sm border-separate border-spacing-y-1.5 text-center">
       <thead>
-        <tr class="bg-primary text-white">
-          <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide">ID</th>
-          <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide">Nombre</th>
-          <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide">Apellido</th>
-          <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide hidden md:table-cell">Correo</th>
-          <th class="px-4 py-3 text-center font-semibold uppercase tracking-wide hidden sm:table-cell">Foto</th>
-          <th class="px-4 py-3 text-center font-semibold uppercase tracking-wide">Acción</th>
+        <tr class="bg-primary text-white font-semibold tracking-wide">
+          <th class="px-4 py-3">ID</th>
+          <th class="px-4 py-3">NOMBRES</th>
+          <th class="px-4 py-3">APELLIDOS</th>
+          <th class="px-4 py-3 hidden md:table-cell">CORREO</th>
+          <th class="px-4 py-3 hidden sm:table-cell">FOTO</th>
+          <th class="px-4 py-3">ACCIÓN</th>
         </tr>
       </thead>
       <tbody>
@@ -70,7 +70,7 @@
           }
         } @else if (estudiantes().length === 0) {
           <tr class="bg-surface-200">
-            <td colspan="6" class="px-4 py-12 text-center text-surface-400">
+            <td colspan="6" class="px-4 py-12  text-surface-400">
               <i class="pi pi-inbox mb-3 text-4xl block"></i>
               No se encontraron estudiantes.
             </td>
@@ -78,10 +78,10 @@
         } @else {
           @for (est of estudiantes(); track est.id_estudiante) {
             <tr class="bg-surface-200 text-black transition-colors hover:bg-surface-300">
-              <td class="px-4 py-3">{{ est.id_estudiante }}</td>
-              <td class="px-4 py-3">{{ est.nombres }}</td>
-              <td class="px-4 py-3">{{ est.apellidos }}</td>
-              <td class="px-4 py-3 hidden md:table-cell">{{ est.correo_institucional }}</td>
+              <td class="px-4 py-3 ">{{ est.id_estudiante }}</td>
+              <td class="px-4 py-3 ">{{ est.nombres }}</td>
+              <td class="px-4 py-3 ">{{ est.apellidos }}</td>
+              <td class="px-4 py-3  hidden md:table-cell">{{ est.correo_institucional }}</td>
               <td class="px-4 py-3 hidden sm:table-cell">
                 <div class="flex justify-center">
                   @if (est.foto_perfil) {
@@ -118,6 +118,9 @@
       [showPageLinks]="true"
       (onPageChange)="onPageChange($event)"
     />
+    <p class="text-sm text-surface-500 text-center">
+      {{ totalRegistros() }} estudiante{{ totalRegistros() !== 1 ? 's' : '' }} encontrado{{ totalRegistros() !== 1 ? 's' : '' }}
+    </p>
   }
 
 </div>
