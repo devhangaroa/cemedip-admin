@@ -12,6 +12,9 @@ import {
   TipoEspecialidad,
   TrainingAttempt,
   TrainingAttemptResult,
+  TrainingHistoryDetail,
+  TrainingHistoryItem,
+  TrainingInProgress,
   TrainingQuestion,
   TrainingQuestionDetail,
 } from '@core/models/training.model';
@@ -37,6 +40,37 @@ describe('TrainingService', () => {
 
   it('should be created', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should request training history detail', () => {
+    const attemptId = 71;
+    const response: ApiSuccessResponse<TrainingHistoryDetail> = {
+      status: 'success',
+      statusCode: 200,
+      data: {
+        intento: {
+          id_intento: attemptId,
+          estado: 'finalizado',
+          correctas: 1,
+          total_preguntas: 5,
+          porcentaje: '20.00',
+          puntaje_obtenido: '20.00',
+          duracion_real: '00:00:26.423140',
+          fecha_finalizacion: '2026-04-13T09:31:48.055443-05:00',
+        },
+        preguntas: [],
+      },
+    };
+
+    service.getHistoryDetail(attemptId).subscribe((result) => {
+      expect(result).toEqual(response);
+    });
+
+    const req = httpTestingController.expectOne(
+      `${API_BASE_URL}/cliente/evaluaciones/training/historial/${attemptId}/`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(response);
   });
 
   it('should request especialidades', () => {
@@ -266,6 +300,55 @@ describe('TrainingService', () => {
     );
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ id_intento: attemptId });
+    req.flush(response);
+  });
+
+  it('should request training history', () => {
+    const response: ApiSuccessResponse<TrainingHistoryItem[]> = {
+      status: 'success',
+      statusCode: 200,
+      data: [
+        {
+          id_intento: 71,
+          fecha_creacion: '2026-04-13T09:31:21.632303-05:00',
+          total_preguntas: 5,
+          total_correctas: 1,
+          porcentaje: '20.00',
+        },
+      ],
+    };
+
+    service.getHistory().subscribe((result) => {
+      expect(result).toEqual(response);
+    });
+
+    const req = httpTestingController.expectOne(
+      `${API_BASE_URL}/cliente/evaluaciones/training/historial/`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(response);
+  });
+
+  it('should request in-progress trainings', () => {
+    const response: ApiSuccessResponse<TrainingInProgress[]> = {
+      status: 'success',
+      statusCode: 200,
+      data: [
+        {
+          id_intento: 69,
+          fecha_creacion: '2026-04-12T22:44:10.401998-05:00',
+          total_preguntas: 3,
+          indice_pregunta_actual: 3,
+        },
+      ],
+    };
+
+    service.getInProgressTrainings().subscribe((result) => {
+      expect(result).toEqual(response);
+    });
+
+    const req = httpTestingController.expectOne(`${API_BASE_URL}/cliente/evaluaciones/training/`);
+    expect(req.request.method).toBe('GET');
     req.flush(response);
   });
 });

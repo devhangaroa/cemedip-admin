@@ -11,17 +11,30 @@
       <section>
         <h2 class="text-primary-900 mb-6 text-3xl font-black tracking-tight uppercase">PROGRESO</h2>
 
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          @for (item of progressItems(); track $index) {
-            <app-progress-card
-              [title]="item.title"
-              [specialty]="item.specialty"
-              [topic]="item.topic"
-              [date]="item.date"
-              [percentage]="item.percentage"
-            />
-          }
-        </div>
+        @if (progressResource.isLoading()) {
+          <div class="flex justify-center py-12">
+            <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            @for (item of progressItems(); track item.id_intento) {
+              <app-progress-card
+                [title]="item.title"
+                [specialty]="item.specialty"
+                [topic]="item.topic"
+                [date]="(item.fecha_creacion | date: 'dd/MM/yyyy') ?? ''"
+                [percentage]="item.percentage"
+                actionLabel="REANUDAR"
+                (actionClick)="resumeTraining(item.id_intento)"
+              />
+            } @empty {
+              <div class="bg-surface-100 col-span-full rounded-2xl p-12 text-center">
+                <i class="pi pi-info-circle text-surface-400 mb-4 text-5xl"></i>
+                <p class="text-surface-600 text-lg font-medium">No tienes trainings en progreso.</p>
+              </div>
+            }
+          </div>
+        }
       </section>
     </div>
   </main>

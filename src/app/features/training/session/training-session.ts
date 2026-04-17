@@ -15,17 +15,13 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { DialogModule } from 'primeng/dialog';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar';
 import { QuestionComponent } from '@shared/components/question/question';
 import { Question } from '@shared/components/question/question.model';
-import {
-  TrainingAttempt,
-  AnswerResponseData,
-  TrainingQuestionDetail,
-  TrainingAttemptResult,
-} from '@core/models/training.model';
+import { TrainingAttempt, TrainingQuestionDetail } from '@core/models/training.model';
 import { TrainingService } from '../services/training.service';
+import { TrainingSessionService } from './services/training-session.service';
+import { TrainingResultModalComponent } from './components/result-modal/result-modal';
 
 @Component({
   selector: 'app-training-session',
@@ -33,16 +29,18 @@ import { TrainingService } from '../services/training.service';
     CommonModule,
     ButtonModule,
     ProgressBarModule,
-    DialogModule,
     TopBarComponent,
     QuestionComponent,
+    TrainingResultModalComponent,
   ],
   templateUrl: './training-session.html',
+  providers: [TrainingSessionService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainingSessionComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly trainingService = inject(TrainingService);
+  protected readonly sessionService = inject(TrainingSessionService);
 
   readonly idIntento = input.required<number, string | number>({
     transform: (v) => Number(v),
@@ -74,13 +72,9 @@ export class TrainingSessionComponent implements OnInit, OnDestroy {
     },
   });
 
-  readonly answeredResult = signal<AnswerResponseData | null>(null);
-  readonly finishResult = signal<TrainingAttemptResult | null>(null);
-  readonly showResultModal = signal(false);
-
   readonly currentQuestion = computed<Question | null>(() => {
     const question = this.questionResource.value();
-    const result = this.answeredResult();
+    const result = this.sessionService.answeredResult();
 
     if (!question) return null;
 
@@ -109,19 +103,11 @@ export class TrainingSessionComponent implements OnInit, OnDestroy {
   readonly isSubmitting = signal(false);
   readonly isFinishing = signal(false);
   readonly selectedOptionId = signal<number | null>(null);
-  readonly isAnswered = computed(() => !!this.answeredResult());
-  readonly secondsElapsed = signal(0);
-  private timerInterval?: ReturnType<typeof setInterval>;
+  readonly isAnswered = computed(() => !!this.sessionService.answeredResult());
 
   readonly progress = computed(() => {
     const total = this.totalQuestions();
     return total > 0 ? (this.currentQuestionIndex() / total) * 100 : 0;
-  });
-
-  readonly formattedTime = computed(() => {
-    const minutes = Math.floor(this.secondsElapsed() / 60);
-    const seconds = this.secondsElapsed() % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   });
 
   readonly progressBarPt = {
@@ -130,23 +116,11 @@ export class TrainingSessionComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
-    this.startTimer();
+    this.sessionService.startTimer();
   }
 
   ngOnDestroy(): void {
-    this.stopTimer();
-  }
-
-  private startTimer(): void {
-    this.timerInterval = setInterval(() => {
-      this.secondsElapsed.update((s) => s + 1);
-    }, 1000);
-  }
-
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
+    this.sessionService.stopTimer();
   }
 
   selectOption(optionId: number): void {
@@ -159,7 +133,7 @@ export class TrainingSessionComponent implements OnInit, OnDestroy {
       .answerQuestion(this.idIntento(), this.currentQuestionIndex(), optionId)
       .subscribe({
         next: (response) => {
-          this.answeredResult.set(response.data);
+          this.sessionService.answeredResult.set(response.data);
           this.isSubmitting.set(false);
         },
         error: () => {
@@ -173,7 +147,7 @@ export class TrainingSessionComponent implements OnInit, OnDestroy {
     if (nextIndex <= this.totalQuestions()) {
       this.currentQuestionIndex.set(nextIndex);
       this.selectedOptionId.set(null);
-      this.answeredResult.set(null);
+      this.sessionService.answeredResult.set(null);
     } else {
       this.finishTraining();
     }
@@ -181,12 +155,12 @@ export class TrainingSessionComponent implements OnInit, OnDestroy {
 
   private finishTraining(): void {
     this.isFinishing.set(true);
-    this.stopTimer();
+    this.sessionService.stopTimer();
 
     this.trainingService.finishTraining(this.idIntento()).subscribe({
       next: (response) => {
-        this.finishResult.set(response.data);
-        this.showResultModal.set(true);
+        this.sessionService.finishResult.set(response.data);
+        this.sessionService.showResultModal.set(true);
         this.isFinishing.set(false);
       },
       error: () => {

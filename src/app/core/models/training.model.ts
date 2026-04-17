@@ -83,3 +83,30 @@ export interface TrainingAttemptResult {
   duracion_real: string;
   fecha_finalizacion: string;
 }
+
+export interface TrainingHistoryItem {
+  id_intento: number;
+  fecha_creacion: string;
+  total_preguntas: number;
+  total_correctas: number;
+  porcentaje: string;
+}
+
+export interface HistoryQuestion extends TrainingQuestionDetail {
+  orden: number;
+  id_intento_pregunta: number;
+  es_correcta: boolean;
+  es_sin_responder: boolean;
+}
+
+export interface TrainingHistoryDetail {
+  intento: TrainingAttemptResult;
+  preguntas: HistoryQuestion[];
+}
+
+export interface TrainingInProgress {
+  id_intento: number;
+  fecha_creacion: string;
+  total_preguntas: number;
+  indice_pregunta_actual: number;
+}

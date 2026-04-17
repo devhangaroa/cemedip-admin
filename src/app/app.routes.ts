@@ -6,13 +6,15 @@ export const routes: Routes = [
     loadComponent: () => import('@features/auth/login/login').then((m) => m.LoginComponent),
   },
   {
-    path: 'reset-password',
-    loadComponent: () =>
-      import('@features/auth/reset-password/reset-password').then((m) => m.ResetPasswordComponent),
-  },
-  {
     path: 'home',
     loadComponent: () => import('@features/home/home').then((m) => m.HomeComponent),
+  },
+  {
+    path: 'training/history/:idIntento',
+    loadComponent: () =>
+      import('@features/training/history/training-history-detail').then(
+        (m) => m.TrainingHistoryDetailComponent,
+      ),
   },
   {
     path: 'training/history',

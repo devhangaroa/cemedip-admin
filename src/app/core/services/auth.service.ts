@@ -3,13 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '@core/constants/api';
-import {
-  LoginRequest,
-  LoginData,
-  User,
-  RecoverPasswordRequest,
-  ConfirmPasswordRequest,
-} from '@core/models/auth.model';
+import { LoginRequest, LoginData, User } from '@core/models/auth.model';
 import { ApiSuccessResponse } from '@core/models/api.model';
 
 @Injectable({
@@ -24,14 +18,9 @@ export class AuthService {
   currentUser = signal<User | null>(this.getStoredUser());
   isAuthenticated = signal<boolean>(!!this.getStoredToken());
 
-  login(credentials: Omit<LoginRequest, 'aplicacion'>): Observable<ApiSuccessResponse<LoginData>> {
-    const request: LoginRequest = {
-      ...credentials,
-      aplicacion: 'app',
-    };
-
+  login(credentials: LoginRequest): Observable<ApiSuccessResponse<LoginData>> {
     return this.http
-      .post<ApiSuccessResponse<LoginData>>(`${API_BASE_URL}/cliente/seguridad/login/`, request)
+      .post<ApiSuccessResponse<LoginData>>(`${API_BASE_URL}/admin/seguridad/login/`, credentials)
       .pipe(
         tap((response) => {
           if (response.status === 'success' && response.data?.token) {
@@ -41,28 +30,10 @@ export class AuthService {
       );
   }
 
-  recoverPassword(
-    request: RecoverPasswordRequest,
-  ): Observable<ApiSuccessResponse<Record<string, never>>> {
-    return this.http.post<ApiSuccessResponse<Record<string, never>>>(
-      `${API_BASE_URL}/cliente/seguridad/recuperar-contrasena/`,
-      request,
-    );
-  }
-
-  confirmPassword(
-    request: ConfirmPasswordRequest,
-  ): Observable<ApiSuccessResponse<Record<string, never>>> {
-    return this.http.post<ApiSuccessResponse<Record<string, never>>>(
-      `${API_BASE_URL}/cliente/seguridad/confirmar-recuperacion-contrasena/`,
-      request,
-    );
-  }
-
   logout(): void {
     this.http
       .post<ApiSuccessResponse<Record<string, never>>>(
-        `${API_BASE_URL}/cliente/seguridad/logout/`,
+        `${API_BASE_URL}/admin/seguridad/logout/`,
         {},
       )
       .pipe(

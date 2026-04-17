@@ -13,6 +13,9 @@ import {
   AnswerResponseData,
   TrainingQuestionDetail,
   TrainingAttemptResult,
+  TrainingHistoryItem,
+  TrainingHistoryDetail,
+  TrainingInProgress,
 } from '@core/models/training.model';
 
 @Injectable({
@@ -20,6 +23,24 @@ import {
 })
 export class TrainingService {
   private readonly http = inject(HttpClient);
+
+  getInProgressTrainings(): Observable<ApiSuccessResponse<TrainingInProgress[]>> {
+    return this.http.get<ApiSuccessResponse<TrainingInProgress[]>>(
+      `${API_BASE_URL}/cliente/evaluaciones/training/`,
+    );
+  }
+
+  getHistory(): Observable<ApiSuccessResponse<TrainingHistoryItem[]>> {
+    return this.http.get<ApiSuccessResponse<TrainingHistoryItem[]>>(
+      `${API_BASE_URL}/cliente/evaluaciones/training/historial/`,
+    );
+  }
+
+  getHistoryDetail(idIntento: number): Observable<ApiSuccessResponse<TrainingHistoryDetail>> {
+    return this.http.get<ApiSuccessResponse<TrainingHistoryDetail>>(
+      `${API_BASE_URL}/cliente/evaluaciones/training/historial/${idIntento}/`,
+    );
+  }
 
   getEspecialidades(): Observable<ApiSuccessResponse<Especialidad[]>> {
     return this.http.get<ApiSuccessResponse<Especialidad[]>>(

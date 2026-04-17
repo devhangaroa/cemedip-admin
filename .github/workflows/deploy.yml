@@ -1,0 +1,189 @@
+name: Deploy cemedip web
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cemedip-web-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  APP_NAME: cemedip-web
+  NODE_VERSION: '24'
+  DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+  BUILD_OUTPUT: ${{ vars.BUILD_OUTPUT != '' && vars.BUILD_OUTPUT || 'dist/cemedip-web/browser' }}
+  RELEASES_TO_KEEP: ${{ vars.RELEASES_TO_KEEP != '' && vars.RELEASES_TO_KEEP || '5' }}
+  HEALTHCHECK_URL: ${{ vars.HEALTHCHECK_URL }}
+  POST_ACTIVATE_COMMAND: ${{ vars.POST_ACTIVATE_COMMAND }}
+
+jobs:
+  deploy:
+    name: validate-build-deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Validate workflow configuration
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_PATH:-}" ]; then
+            echo "La variable DEPLOY_PATH es obligatoria."
+            exit 1
+          fi
+
+          case "$DEPLOY_PATH" in
+            /|/root|/home|/var|/usr|/opt)
+              echo "DEPLOY_PATH apunta a una ruta demasiado amplia o riesgosa: $DEPLOY_PATH"
+              exit 1
+              ;;
+          esac
+
+          if ! [[ "$RELEASES_TO_KEEP" =~ ^[0-9]+$ ]]; then
+            echo "RELEASES_TO_KEEP debe ser numerico."
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Show tool versions
+        run: |
+          set -euo pipefail
+          node --version
+
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test -- --watch=false
+
+      - name: Build Angular app
+        run: npm run build -- --configuration production --project cemedip-web
+
+      - name: Verify build output
+        run: |
+          set -euo pipefail
+
+          if [ ! -d "$BUILD_OUTPUT" ]; then
+            echo "No existe el directorio de salida esperado: $BUILD_OUTPUT"
+            echo "Contenido disponible en dist/:"
+            find dist -maxdepth 3 -mindepth 1 -print 2>/dev/null || true
+            exit 1
+          fi
+
+          if [ ! -f "$BUILD_OUTPUT/index.html" ]; then
+            echo "No se encontro index.html en $BUILD_OUTPUT"
+            exit 1
+          fi
+
+      - name: Generate release name
+        run: echo "RELEASE=$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-p $SSH_PORT -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "echo 'SSH OK'"
+
+      - name: Create release directories
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-p $SSH_PORT -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" \
+            "mkdir -p '$DEPLOY_PATH/releases/$RELEASE' '$DEPLOY_PATH/shared'"
+
+      - name: Upload build
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-p $SSH_PORT -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+
+          rsync -az --delete \
+            -e "ssh $SSH_OPTS" \
+            "$BUILD_OUTPUT"/ \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE/"
+
+      - name: Activate release and prune old releases
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-p $SSH_PORT -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' RELEASE='$RELEASE' GITHUB_SHA='$GITHUB_SHA' RELEASES_TO_KEEP='$RELEASES_TO_KEEP' POST_ACTIVATE_COMMAND='$POST_ACTIVATE_COMMAND' bash -se" <<'EOF'
+          set -euo pipefail
+
+          printf '%s\n' "$GITHUB_SHA" > "$DEPLOY_PATH/releases/$RELEASE/REVISION"
+          printf '%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$DEPLOY_PATH/releases/$RELEASE/DEPLOYED_AT"
+
+          ln -sfn "$DEPLOY_PATH/releases/$RELEASE" "$DEPLOY_PATH/current"
+
+          if [ -n "${POST_ACTIVATE_COMMAND:-}" ]; then
+            bash -lc "$POST_ACTIVATE_COMMAND"
+          fi
+
+          find "$DEPLOY_PATH/releases" -mindepth 1 -maxdepth 1 -type d | sort | head -n -"${RELEASES_TO_KEEP}" | xargs -r rm -rf
+          EOF
+
+      - name: Verify deployed release contents
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-p $SSH_PORT -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" \
+            "test -f '$DEPLOY_PATH/current/index.html' && test -f '$DEPLOY_PATH/current/REVISION'"

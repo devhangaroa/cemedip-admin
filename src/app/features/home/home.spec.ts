@@ -1,9 +1,11 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '@core/services/auth.service';
 import { HomeComponent } from './home';
+import { TrainingService } from '@features/training/services/training.service';
 
 describe('HomeComponent', () => {
   const authServiceMock = {
@@ -12,12 +14,21 @@ describe('HomeComponent', () => {
     isAuthenticated: signal(true),
   };
 
+  const trainingServiceMock = {
+    getInProgressTrainings: vi.fn(),
+  };
+
   beforeEach(async () => {
     authServiceMock.logout.mockReset();
+    trainingServiceMock.getInProgressTrainings.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [provideRouter([]), { provide: AuthService, useValue: authServiceMock }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: TrainingService, useValue: trainingServiceMock },
+      ],
     }).compileComponents();
   });
 
@@ -30,24 +41,51 @@ describe('HomeComponent', () => {
   }
 
   it('should create', () => {
+    trainingServiceMock.getInProgressTrainings.mockReturnValue(of({ data: [] }));
     const { component } = createComponent();
 
     expect(component).toBeDefined();
   });
 
-  it('should expose seeded progress items', () => {
-    const { component } = createComponent();
+  it('should fetch and expose progress items', async () => {
+    const mockData = [
+      {
+        id_intento: 1,
+        fecha_creacion: '2026-04-12T22:44:10.401998-05:00',
+        total_preguntas: 10,
+        indice_pregunta_actual: 5,
+      },
+    ];
+    trainingServiceMock.getInProgressTrainings.mockReturnValue(of({ data: mockData }));
 
-    expect(component.progressItems().length).toBe(3);
-    expect(component.progressItems()[0]?.title).toBe('EXAMEN DE PRÁCTICA');
+    const { component, fixture } = createComponent();
+    fixture.detectChanges();
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.progressItems().length).toBe(1);
+    expect(component.progressItems()[0]?.title).toBe('TRAINING EN PROGRESO');
+    expect(component.progressItems()[0]?.percentage).toBe(50);
   });
 
   it('should navigate to training', () => {
+    trainingServiceMock.getInProgressTrainings.mockReturnValue(of({ data: [] }));
     const { component, router } = createComponent();
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.goToTraining();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/training']);
+  });
+
+  it('should navigate to session when resuming', () => {
+    trainingServiceMock.getInProgressTrainings.mockReturnValue(of({ data: [] }));
+    const { component, router } = createComponent();
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.resumeTraining(123);
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/training/session', 123]);
   });
 });

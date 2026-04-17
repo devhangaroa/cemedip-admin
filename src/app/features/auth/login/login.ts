@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of, tap } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -9,6 +11,7 @@ import { LogoComponent } from '@shared/components/logo/logo';
 import { AuthShellComponent } from '@shared/components/auth-shell/auth-shell';
 import { FormFieldComponent } from '@shared/components/form-field/form-field';
 import { AuthService } from '@core/services/auth.service';
+import { LoginRequest } from '@core/models/auth.model';
 import { extractApiErrorMessage } from '@core/models/api.model';
 
 @Component({
@@ -21,7 +24,6 @@ import { extractApiErrorMessage } from '@core/models/api.model';
     LogoComponent,
     FormFieldComponent,
     AuthShellComponent,
-    RouterLink,
   ],
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,8 +38,33 @@ export class LoginComponent {
     password: ['', [Validators.required]],
   });
 
-  protected isLoading = signal(false);
-  protected errorMessage = signal<string | null>(null);
+  private readonly loginTrigger = signal<LoginRequest | null>(null);
+
+  protected readonly loginResource = rxResource({
+    params: () => this.loginTrigger(),
+    stream: ({ params: credentials }) => {
+      if (!credentials) return of(null);
+      return this.authService.login(credentials).pipe(
+        tap((response) => {
+          if (response.status === 'success') {
+            void this.router.navigate(['/home']);
+          }
+        }),
+      );
+    },
+  });
+
+  protected readonly isLoading = computed(() => this.loginResource.isLoading());
+
+  protected readonly errorMessage = computed(() => {
+    const error = this.loginResource.error() as HttpErrorResponse | null | undefined;
+    if (error) return extractApiErrorMessage(error);
+
+    const value = this.loginResource.value();
+    if (value && value.status === 'error') return value.message || 'Error al iniciar sesión';
+
+    return null;
+  });
 
   protected get username() {
     return this.loginForm.controls.username;
@@ -49,24 +76,10 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.isLoading.set(true);
-      this.errorMessage.set(null);
-
       const { username, password } = this.loginForm.getRawValue();
-
-      this.authService.login({ username, password }).subscribe({
-        next: (response) => {
-          if (response.status === 'success') {
-            this.router.navigate(['/home']);
-          } else {
-            this.errorMessage.set(response.message || 'Error al iniciar sesión');
-          }
-          this.isLoading.set(false);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorMessage.set(extractApiErrorMessage(err));
-          this.isLoading.set(false);
-        },
+      this.loginTrigger.set({
+        username,
+        password,
       });
     } else {
       this.loginForm.markAllAsTouched();

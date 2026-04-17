@@ -30,9 +30,11 @@
 
       <form [formGroup]="trainingForm" (ngSubmit)="startTraining()" class="space-y-10">
         <div class="grid gap-6 xl:grid-cols-3 xl:gap-10">
-          <app-form-field id="training-specialty" label="ESPECIALIDAD">
+          <app-form-field inputId="training-specialty" label="ESPECIALIDAD">
             <p-multiselect
               inputId="training-specialty"
+              name="training-specialty"
+              autocomplete="off"
               formControlName="specialty"
               [options]="specialties()"
               [loading]="loading()"
@@ -49,16 +51,18 @@
               fluid
               size="large"
               variant="filled"
-              [pt]="multiselectPt"
+              [pt]="multiselectPt('training-specialty-filter', 'training-specialty-filter')"
             />
             @if (specialtyInvalid()) {
               <small class="app-form-error">Debes elegir al menos una especialidad</small>
             }
           </app-form-field>
 
-          <app-form-field id="training-type" label="TIPO">
+          <app-form-field inputId="training-type" label="TIPO">
             <p-multiselect
               inputId="training-type"
+              name="training-type"
+              autocomplete="off"
               formControlName="type"
               [options]="availableTypes()"
               [loading]="loading()"
@@ -77,16 +81,18 @@
               fluid
               size="large"
               variant="filled"
-              [pt]="multiselectPt"
+              [pt]="multiselectPt('training-type-filter', 'training-type-filter')"
             />
             @if (typeInvalid()) {
               <small class="app-form-error">Debes elegir al menos un tipo</small>
             }
           </app-form-field>
 
-          <app-form-field id="training-topic" label="TEMA">
+          <app-form-field inputId="training-topic" label="TEMA">
             <p-multiselect
               inputId="training-topic"
+              name="training-topic"
+              autocomplete="off"
               formControlName="topic"
               [options]="availableTopics()"
               [loading]="loading()"
@@ -105,7 +111,7 @@
               fluid
               size="large"
               variant="filled"
-              [pt]="multiselectPt"
+              [pt]="multiselectPt('training-topic-filter', 'training-topic-filter')"
             />
             @if (topicInvalid()) {
               <small class="app-form-error">Debes elegir al menos un tema</small>
@@ -138,19 +144,6 @@
           />
         </div>
       </form>
-
-      @if (submittedSelection(); as selection) {
-        <section class="border-primary-100 bg-surface-0 rounded-3xl border p-6 shadow-sm">
-          <h2 class="text-primary-900 text-lg font-semibold tracking-[0.08em] uppercase">
-            Configuración lista
-          </h2>
-          <p class="text-surface-700 mt-3 text-sm leading-7 md:text-base">
-            {{ formatSelectionSummary(selection.specialties) }} /
-            {{ formatSelectionSummary(selection.types) }} /
-            {{ formatSelectionSummary(selection.topics) }} / {{ selection.questionCount }} preguntas
-          </p>
-        </section>
-      }
     </section>
   </main>
 </div>

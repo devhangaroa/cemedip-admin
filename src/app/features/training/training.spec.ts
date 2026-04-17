@@ -89,8 +89,12 @@ describe('TrainingComponent', () => {
     return { fixture, component, router };
   }
 
-  async function settle(fixture: { whenStable: () => Promise<unknown> }) {
+  async function settle(fixture: {
+    whenStable: () => Promise<unknown>;
+    detectChanges: () => void;
+  }) {
     await fixture.whenStable();
+    fixture.detectChanges();
   }
 
   it('should create', () => {
@@ -125,16 +129,18 @@ describe('TrainingComponent', () => {
     expect(component.trainingForm.controls.topic.disabled).toBe(false);
   });
 
-  it('should mark the form as touched and avoid starting when invalid', () => {
-    const { component } = createComponent();
+  it('should mark the form as touched and avoid starting when invalid', async () => {
+    const { fixture, component } = createComponent();
 
     component.startTraining();
+    TestBed.flushEffects();
+    await settle(fixture);
 
     expect(trainingServiceMock.createTraining).not.toHaveBeenCalled();
     expect(component.trainingForm.touched).toBe(true);
   });
 
-  it('should create the training, update the summary and navigate to the session', async () => {
+  it('should create the training and navigate to the session', async () => {
     const { fixture, component, router } = createComponent();
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
@@ -147,19 +153,14 @@ describe('TrainingComponent', () => {
     component.trainingForm.controls.questionCount.setValue(25);
 
     component.startTraining();
-    await Promise.resolve();
+    TestBed.flushEffects();
+    await settle(fixture);
 
     expect(trainingServiceMock.createTraining).toHaveBeenCalledWith({
       especialidades: [2],
       tipos: [21],
       temas: [211, 212],
       numero_preguntas: 25,
-    });
-    expect(component.submittedSelection()).toEqual({
-      specialties: ['Ginecología'],
-      types: ['Consulta'],
-      topics: ['Control prenatal', 'Salud reproductiva'],
-      questionCount: 25,
     });
     expect(navigateSpy).toHaveBeenCalledWith(['/training/session', 54]);
   });

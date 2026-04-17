@@ -46,8 +46,11 @@ export class QuestionComponent {
 
   getOptionPt() {
     return {
-      root: { class: 'h-16 shadow-none border-none' },
-      label: { class: 'uppercase tracking-wider font-semibold text-lg' },
+      root: { class: 'min-h-16 h-auto justify-center py-0 shadow-none border-none' },
+      label: {
+        class:
+          'flex min-h-16 items-center justify-center whitespace-normal break-words px-4 py-4 text-center uppercase tracking-wider font-semibold text-lg leading-snug',
+      },
     };
   }
 }

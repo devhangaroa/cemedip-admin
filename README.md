@@ -1,4 +1,4 @@
-# Cemedip Admin
+# Cemedip Web
 
 Frontend interno de Cemedip construido con Angular 21, componentes standalone, cambio de detección zoneless, PrimeNG 21 y Tailwind CSS 4.
 

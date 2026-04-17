@@ -10,7 +10,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { map, of } from 'rxjs';
+import { map, of, tap } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { FormFieldComponent } from '@shared/components/form-field/form-field';
@@ -32,13 +32,6 @@ interface TrainingTypeOption {
 interface TrainingSpecialtyOption {
   label: string;
   value: string;
-}
-
-interface TrainingSelectionSummary {
-  specialties: string[];
-  types: string[];
-  topics: string[];
-  questionCount: number;
 }
 
 const QUESTION_OPTIONS: OptionGridItem<number>[] = [5, 10, 20, 25, 30, 40, 50, 100].map(
@@ -85,7 +78,23 @@ export class TrainingComponent {
       this.typesResource.isLoading() ||
       this.topicsResource.isLoading(),
   );
-  readonly isStarting = signal(false);
+
+  private readonly startTrigger = signal<CreateTrainingRequest | null>(null);
+
+  protected readonly startTrainingResource = rxResource({
+    params: () => this.startTrigger(),
+    stream: ({ params }) => {
+      if (!params) return of(null);
+      return this.trainingService.createTraining(params).pipe(
+        tap((response) => {
+          const attempt = response.data;
+          void this.router.navigate(['/training/session', attempt.id_intento]);
+        }),
+      );
+    },
+  });
+
+  readonly isStarting = computed(() => this.startTrainingResource.isLoading());
   readonly questionOptions = signal(QUESTION_OPTIONS);
 
   readonly trainingForm = this.fb.group({
@@ -162,14 +171,23 @@ export class TrainingComponent {
     const control = this.trainingForm.controls.topic;
     return control.invalid && control.touched;
   });
-  readonly submittedSelection = signal<TrainingSelectionSummary | null>(null);
-  readonly multiselectPt = {
-    root: { class: 'border-surface-200 bg-surface-100' },
-    overlay: { class: 'border-surface-200' },
-    header: { class: 'border-b border-surface-200 bg-surface-0' },
-    listContainer: { class: 'bg-surface-0' },
-    emptyMessage: { class: 'px-4 py-3 text-sm text-surface-500' },
-  };
+
+  multiselectPt(filterId: string, filterName: string) {
+    return {
+      root: { class: 'border-surface-200 bg-surface-100' },
+      overlay: { class: 'border-surface-200' },
+      header: { class: 'border-b border-surface-200 bg-surface-0' },
+      listContainer: { class: 'bg-surface-0' },
+      emptyMessage: { class: 'px-4 py-3 text-sm text-surface-500' },
+      pcFilter: {
+        root: {
+          id: filterId,
+          name: filterName,
+          autocomplete: 'off' as const,
+        },
+      },
+    };
+  }
   readonly headerActionPt = {
     root: { class: 'h-11 px-6 text-sm font-semibold tracking-[0.08em] uppercase shadow-none' },
     label: { class: 'px-0' },
@@ -242,53 +260,7 @@ export class TrainingComponent {
       numero_preguntas: rawValue.questionCount,
     };
 
-    this.isStarting.set(true);
-    this.trainingService.createTraining(request).subscribe({
-      next: (response) => {
-        this.isStarting.set(false);
-        this.submittedSelection.set({
-          specialties: this.resolveSpecialtyLabels(rawValue.specialty),
-          types: this.resolveTypeLabels(rawValue.type),
-          topics: this.resolveTopicLabels(rawValue.topic),
-          questionCount: rawValue.questionCount,
-        });
-
-        const attempt = response.data;
-        void this.router.navigate(['/training/session', attempt.id_intento]);
-      },
-      error: (error) => {
-        this.isStarting.set(false);
-        console.error('Error al iniciar el entrenamiento:', error);
-      },
-    });
-  }
-
-  formatSelectionSummary(values: string[]): string {
-    return values.join(', ');
-  }
-
-  private resolveSpecialtyLabels(specialtyValues: string[]): string[] {
-    const selectedSpecialties = new Set(specialtyValues);
-
-    return this.specialties()
-      .filter((item) => selectedSpecialties.has(item.value))
-      .map((item) => item.label);
-  }
-
-  private resolveTypeLabels(typeValues: string[]): string[] {
-    const selectedTypes = new Set(typeValues);
-
-    return this.availableTypes()
-      .filter((item) => selectedTypes.has(item.value))
-      .map((item) => item.label);
-  }
-
-  private resolveTopicLabels(topicValues: string[]): string[] {
-    const selectedTopics = new Set(topicValues);
-
-    return this.availableTopics()
-      .filter((item) => selectedTopics.has(item.value))
-      .map((item) => item.label);
+    this.startTrigger.set(request);
   }
 
   goToHistory(): void {

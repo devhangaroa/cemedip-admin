@@ -154,8 +154,8 @@ describe('TrainingSessionComponent', () => {
     component.nextQuestion();
 
     expect(trainingServiceMock.finishTraining).toHaveBeenCalledWith(1);
-    expect(component.showResultModal()).toBe(true);
-    expect(component.finishResult()).toEqual(mockFinishResult);
+    expect(component['sessionService'].showResultModal()).toBe(true);
+    expect(component['sessionService'].finishResult()).toEqual(mockFinishResult);
   });
 
   it('should recover submission state when answerQuestion fails', () => {

@@ -52,17 +52,39 @@ describe('LoginComponent', () => {
     });
   });
 
-  it('should mark the form as touched and avoid submitting when invalid', () => {
-    const { component } = createComponent();
+  it('should expose autofill-friendly attributes and matching labels', () => {
+    const { fixture } = createComponent();
+
+    fixture.detectChanges();
+
+    const hostElement = fixture.nativeElement as HTMLElement;
+    const usernameInput = hostElement.querySelector<HTMLInputElement>('input[id="username"]');
+    const passwordInput = hostElement.querySelector<HTMLInputElement>('input[id="password"]');
+    const usernameLabel = hostElement.querySelector<HTMLLabelElement>('label[for="username"]');
+    const passwordLabel = hostElement.querySelector<HTMLLabelElement>('label[for="password"]');
+
+    expect(usernameInput?.getAttribute('name')).toBe('username');
+    expect(usernameInput?.getAttribute('autocomplete')).toBe('username');
+    expect(passwordInput?.getAttribute('name')).toBe('password');
+    expect(passwordInput?.getAttribute('autocomplete')).toBe('current-password');
+    expect(usernameLabel).not.toBeNull();
+    expect(passwordLabel).not.toBeNull();
+  });
+
+  it('should mark the form as touched and avoid submitting when invalid', async () => {
+    const { fixture, component } = createComponent();
 
     component.onSubmit();
+    TestBed.flushEffects();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(authServiceMock.login).not.toHaveBeenCalled();
     expect(component['loginForm'].touched).toBe(true);
   });
 
   it('should call authService.login and navigate to home on success', async () => {
-    const { component, router } = createComponent();
+    const { fixture, component, router } = createComponent();
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     authServiceMock.login.mockReturnValue(
@@ -75,7 +97,9 @@ describe('LoginComponent', () => {
     });
 
     component.onSubmit();
-    await Promise.resolve();
+    TestBed.flushEffects();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(authServiceMock.login).toHaveBeenCalledWith({
       username: 'test@user.com',
@@ -86,8 +110,8 @@ describe('LoginComponent', () => {
     expect(component['errorMessage']()).toBeNull();
   });
 
-  it('should show a backend message when login returns a non-success status', () => {
-    const { component } = createComponent();
+  it('should show a backend message when login returns a non-success status', async () => {
+    const { fixture, component } = createComponent();
 
     authServiceMock.login.mockReturnValue(
       of({
@@ -104,13 +128,16 @@ describe('LoginComponent', () => {
     });
 
     component.onSubmit();
+    TestBed.flushEffects();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(component['errorMessage']()).toBe('Credenciales inválidas');
     expect(component['isLoading']()).toBe(false);
   });
 
-  it('should show backend error when api returns error payload', () => {
-    const { component } = createComponent();
+  it('should show backend error when api returns error payload', async () => {
+    const { fixture, component } = createComponent();
 
     authServiceMock.login.mockReturnValue(
       throwError(
@@ -132,6 +159,9 @@ describe('LoginComponent', () => {
     });
 
     component.onSubmit();
+    TestBed.flushEffects();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(component['errorMessage']()).toBe('Credenciales incorrectas');
     expect(component['isLoading']()).toBe(false);

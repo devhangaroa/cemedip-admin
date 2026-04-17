@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       @if (label()) {
         <label
           class="text-surface-700 group-focus-within:text-primary-500 ml-3 pl-1 text-xs font-bold tracking-widest uppercase transition-colors"
-          [for]="id()"
+          [for]="inputId()"
         >
           {{ label() }}
         </label>
@@ -20,7 +20,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormFieldComponent {
-  id = input.required<string>();
+  inputId = input.required<string>();
 
   label = input<string>();
 }
