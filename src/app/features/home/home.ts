@@ -4,7 +4,7 @@ import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-home',
-  imports: [UpperCasePipe],
+  imports: [],
   templateUrl: './home.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
