@@ -23,7 +23,7 @@ import { TopBarComponent } from '@shared/components/top-bar/top-bar';
 
       <div class="flex flex-1 flex-col overflow-hidden">
         <app-top-bar (toggleSidebar)="sidebarOpen.update((v) => !v)" />
-        <main class="flex-1 overflow-auto p-6">
+        <main class="flex-1 overflow-auto bg-surface-0 p-6">
           <router-outlet />
         </main>
       </div>

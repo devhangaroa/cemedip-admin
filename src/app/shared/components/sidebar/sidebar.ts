@@ -7,7 +7,7 @@ import { NgOptimizedImage } from '@angular/common';
   imports: [RouterLink, RouterLinkActive, NgOptimizedImage],
   template: `
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-surface-0 shadow-md transition-all duration-300 overflow-hidden
+      class="fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-surface-50 shadow-md transition-all duration-300 overflow-hidden
              lg:relative lg:z-auto lg:translate-x-0"
       [class]="open() ? 'translate-x-0 w-64' : '-translate-x-full w-64 lg:translate-x-0 lg:w-16'"
     >
@@ -23,9 +23,9 @@ import { NgOptimizedImage } from '@angular/common';
 
         <a
           routerLink="/preguntas"
-          routerLinkActive="bg-primary/10 text-primary font-semibold"
+          routerLinkActive="bg-primary/10 text-primary font-semibold hover:bg-primary/20"
           [title]="!open() ? 'Preguntas' : ''"
-          class="flex items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-50"
+          class="flex items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-100"
           [class.justify-center]="!open()"
           (click)="navItemClick.emit()"
         >
@@ -35,7 +35,7 @@ import { NgOptimizedImage } from '@angular/common';
 
         <div>
           <button
-            class="flex w-[calc(100%-16px)] items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-50"
+            class="flex w-[calc(100%-16px)] items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-100"
             [class.justify-center]="!open()"
             (click)="open() && toggleSeguridad()"
           >
@@ -49,20 +49,20 @@ import { NgOptimizedImage } from '@angular/common';
 
           @if (seguridadOpen() && open()) {
             <div class="ml-4 flex flex-col gap-1 mt-1">
-              <a routerLink="/seguridad/estudiantes" routerLinkActive="text-primary font-semibold bg-primary/5"
-                class="flex items-center gap-2 mx-2 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-50 hover:text-surface-700 transition-colors"
+              <a routerLink="/seguridad/estudiantes" routerLinkActive="text-primary font-semibold bg-primary/10 hover:bg-primary/20"
+                class="flex items-center gap-2 mx-2 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-100 hover:text-surface-700 transition-colors"
                 (click)="navItemClick.emit()">
                 <i class="pi pi-users text-sm"></i>
                 Estudiantes
               </a>
-              <a routerLink="/seguridad/administradores" routerLinkActive="text-primary font-semibold bg-primary/5"
-                class="flex items-center gap-2 mx-2 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-50 hover:text-surface-700 transition-colors"
+              <a routerLink="/seguridad/administradores" routerLinkActive="text-primary font-semibold bg-primary/10 hover:bg-primary/20"
+                class="flex items-center gap-2 mx-2 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-100 hover:text-surface-700 transition-colors"
                 (click)="navItemClick.emit()">
                 <i class="pi pi-user-plus text-sm"></i>
                 Administradores
               </a>
-              <a routerLink="/seguridad/permisos" routerLinkActive="text-primary font-semibold bg-primary/5"
-                class="flex items-center gap-2 mx-2 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-50 hover:text-surface-700 transition-colors"
+              <a routerLink="/seguridad/permisos" routerLinkActive="text-primary font-semibold bg-primary/10 hover:bg-primary/20"
+                class="flex items-center gap-2 mx-2 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-100 hover:text-surface-700 transition-colors"
                 (click)="navItemClick.emit()">
                 <i class="pi pi-lock text-sm"></i>
                 Permisos

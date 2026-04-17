@@ -216,6 +216,40 @@ export const CemedipPreset = definePreset(Aura, {
   },
 
   components: {
+    button: {
+      colorScheme: {
+        light: {
+          root: {
+            secondary: {
+              background:        '{brandteal.500}',
+              hoverBackground:   '{brandteal.600}',
+              activeBackground:  '{brandteal.700}',
+              borderColor:       '{brandteal.500}',
+              hoverBorderColor:  '{brandteal.600}',
+              activeBorderColor: '{brandteal.700}',
+              color:             '#ffffff',
+              hoverColor:        '#ffffff',
+              activeColor:       '#ffffff',
+            },
+          },
+        },
+        dark: {
+          root: {
+            secondary: {
+              background:        '{brandteal.400}',
+              hoverBackground:   '{brandteal.300}',
+              activeBackground:  '{brandteal.200}',
+              borderColor:       '{brandteal.400}',
+              hoverBorderColor:  '{brandteal.300}',
+              activeBorderColor: '{brandteal.200}',
+              color:             '#ffffff',
+              hoverColor:        '#ffffff',
+              activeColor:       '#ffffff',
+            },
+          },
+        },
+      },
+    },
     progressbar: {
       value: {
         background: '{success.color}',
