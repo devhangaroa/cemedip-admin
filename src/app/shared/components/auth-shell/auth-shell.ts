@@ -31,24 +31,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
     <ng-template #hero>
       <aside class="app-auth-hero" [class.app-auth-hero-scroll]="scrollable()">
-        <div
-          class="app-auth-hero-frame"
-          [class.app-auth-hero-frame-left]="imagePosition() === 'left'"
-          [class.app-auth-hero-frame-right]="imagePosition() === 'right'"
-        >
+        <div class="app-auth-hero-frame">
           <img
             [ngSrc]="imageSrc()"
             [alt]="imageAlt()"
             fill
             priority
             class="app-auth-hero-image"
-            [class.app-auth-hero-image-left]="imagePosition() === 'left'"
           />
-
-          <div
-            class="app-auth-hero-overlay"
-            [class.app-auth-hero-overlay-left]="imagePosition() === 'left'"
-          ></div>
         </div>
       </aside>
     </ng-template>
