@@ -37,7 +37,8 @@ export class EstudiantesComponent {
   protected readonly paginador = computed(() => this.estudiantesResource.value()?.data_paginador ?? null);
   protected readonly isLoading = computed(() => this.estudiantesResource.isLoading());
   protected readonly totalRegistros = computed(() => this.paginador()?.total_registros ?? 0);
-  protected readonly paginaActual = computed(() => ((this.paginador()?.pagina_actual ?? 1) - 1) * 10);
+  protected readonly pageSize = signal(10);
+  protected readonly paginaActual = computed(() => ((this.paginador()?.pagina_actual ?? 1) - 1) * this.pageSize());
 
   protected readonly errorMessage = computed(() => {
     const error = this.estudiantesResource.error() as HttpErrorResponse | null;
@@ -61,8 +62,10 @@ export class EstudiantesComponent {
   }
 
   onPageChange(event: PaginatorState) {
-    const page = (event.page ?? 0) + 1;
     const page_size = event.rows ?? 10;
+    const sizeChanged = page_size !== this.pageSize();
+    const page = sizeChanged ? 1 : (event.page ?? 0) + 1;
+    this.pageSize.set(page_size);
     this.filtros.update((f) => ({ ...f, page, page_size }));
   }
 }

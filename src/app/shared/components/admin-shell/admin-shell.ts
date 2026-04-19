@@ -32,7 +32,7 @@ import { TopBarComponent } from '@shared/components/top-bar/top-bar';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminShellComponent {
-  protected readonly sidebarOpen = signal(true);
+  protected readonly sidebarOpen = signal(window.innerWidth >= 1024);
 
   protected onNavItemClick() {
     if (window.innerWidth < 1024) {
