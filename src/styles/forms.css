@@ -1,6 +1,31 @@
+@layer primeng {
+  /* DatePicker con showIcon: cuadrar el borde derecho del input y el izquierdo del botón */
+  .p-datepicker:has(.p-datepicker-dropdown) .p-inputtext {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+
+  .p-datepicker-dropdown {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+  }
+
+  /* Selects y multiselects dentro de <form>: altura consistente con los inputs (h-14).
+     El paginador no vive dentro de <form> así que no se ve afectado. */
+  form .p-select,
+  form .p-multiselect {
+    height: 3.5rem;
+  }
+
+  form .p-multiselect-label-container {
+    display: flex;
+    align-items: center;
+  }
+}
+
 @layer components {
   .app-select-field {
-    @apply w-full h-14;
+    @apply w-full; /* úsalo cuando el select no tiene elementos al lado */
   }
 
   .app-form-busy {

@@ -53,6 +53,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'evaluaciones/intentos',
+        loadComponent: () =>
+          import('@features/evaluaciones/intentos/intentos').then((m) => m.IntentosComponent),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

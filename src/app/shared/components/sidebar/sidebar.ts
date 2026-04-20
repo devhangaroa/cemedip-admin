@@ -71,6 +71,18 @@ import { NgOptimizedImage } from '@angular/common';
           }
         </div>
 
+        <a
+          routerLink="/evaluaciones/intentos"
+          routerLinkActive="bg-primary/10 text-primary font-semibold hover:bg-primary/20"
+          [title]="!open() ? 'Intentos' : ''"
+          class="flex items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-100"
+          [class.justify-center]="!open()"
+          (click)="navItemClick.emit()"
+        >
+          <i class="pi pi-list-check text-lg flex-shrink-0"></i>
+          @if (open()) { <span class="text-sm">Intentos</span> }
+        </a>
+
       </nav>
     </aside>
   `,
