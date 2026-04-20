@@ -58,4 +58,13 @@ export class SeguridadService {
       {},
     );
   }
+
+  cargaMasivaEstudiantes(archivo: File): Observable<ApiSuccessResponse<{ creados: number; actualizados: number; errores: string[] }>> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<ApiSuccessResponse<{ creados: number; actualizados: number; errores: string[] }>>(
+      `${API_BASE_URL}/admin/seguridad/carga-masiva-estudiantes/`,
+      formData,
+    );
+  }
 }

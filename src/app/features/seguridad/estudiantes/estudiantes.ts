@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule } from 'primeng/paginator';
 import { PaginatorState } from 'primeng/paginator';
@@ -17,7 +18,7 @@ import { extractApiErrorMessage } from '@core/models/api.model';
 
 @Component({
   selector: 'app-estudiantes',
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, ConfirmDialogModule, InputTextModule, PaginatorModule, SelectModule],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, ConfirmDialogModule, FileUploadModule, InputTextModule, PaginatorModule, SelectModule],
   providers: [ConfirmationService],
   templateUrl: './estudiantes.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,6 +89,34 @@ export class EstudiantesComponent {
 
   verEstudiante(id: number) {
     this.router.navigate(['/seguridad/estudiantes', id]);
+  }
+
+  protected readonly archivoExcel = signal<File | null>(null);
+  protected readonly isUploading = signal(false);
+  protected readonly resultadoCarga = signal<{ creados: number; actualizados: number; errores: string[] } | null>(null);
+
+  onSelectExcel(event: { files: File[] }) {
+    this.archivoExcel.set(event.files[0] ?? null);
+    this.resultadoCarga.set(null);
+  }
+
+  procesarCargaMasiva() {
+    const archivo = this.archivoExcel();
+    if (!archivo || this.isUploading()) return;
+    this.isUploading.set(true);
+    this.seguridadService.cargaMasivaEstudiantes(archivo).subscribe({
+      next: (res) => {
+        this.resultadoCarga.set(res.data);
+        this.archivoExcel.set(null);
+        this.isUploading.set(false);
+        this.estudiantesResource.reload();
+        this.toast.success(`Carga completada: ${res.data.creados} creados, ${res.data.actualizados} actualizados.`);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toast.error(extractApiErrorMessage(err));
+        this.isUploading.set(false);
+      },
+    });
   }
 
   confirmarEliminar(id: number, nombre: string) {

@@ -11,6 +11,25 @@ export const routes: Routes = [
       import('@shared/components/admin-shell/admin-shell').then((m) => m.AdminShellComponent),
     children: [
       {
+        path: 'preguntas',
+        loadComponent: () =>
+          import('@features/preguntas/preguntas').then((m) => m.PreguntasComponent),
+      },
+      {
+        path: 'preguntas/nuevo',
+        loadComponent: () =>
+          import('@features/preguntas/pregunta-form/pregunta-form').then(
+            (m) => m.PreguntaFormComponent,
+          ),
+      },
+      {
+        path: 'preguntas/:id',
+        loadComponent: () =>
+          import('@features/preguntas/pregunta-form/pregunta-form').then(
+            (m) => m.PreguntaFormComponent,
+          ),
+      },
+      {
         path: 'home',
         loadComponent: () => import('@features/home/home').then((m) => m.HomeComponent),
       },
@@ -22,12 +41,16 @@ export const routes: Routes = [
       {
         path: 'seguridad/estudiantes/nuevo',
         loadComponent: () =>
-          import('@features/seguridad/estudiante-form/estudiante-form').then((m) => m.EstudianteFormComponent),
+          import('@features/seguridad/estudiante-form/estudiante-form').then(
+            (m) => m.EstudianteFormComponent,
+          ),
       },
       {
         path: 'seguridad/estudiantes/:id',
         loadComponent: () =>
-          import('@features/seguridad/estudiante-form/estudiante-form').then((m) => m.EstudianteFormComponent),
+          import('@features/seguridad/estudiante-form/estudiante-form').then(
+            (m) => m.EstudianteFormComponent,
+          ),
       },
       {
         path: '',
