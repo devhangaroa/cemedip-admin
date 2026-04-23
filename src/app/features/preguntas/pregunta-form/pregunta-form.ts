@@ -52,6 +52,7 @@ export class PreguntaFormComponent implements OnInit {
   protected readonly letras = LETRAS;
 
   protected readonly idPregunta = signal<number | null>(null);
+  protected readonly codigoPregunta = signal<string | null>(null);
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly formSubmitted = signal(false);
@@ -173,6 +174,8 @@ export class PreguntaFormComponent implements OnInit {
             }),
           );
         }
+
+        this.codigoPregunta.set(p.codigo ?? null);
 
         this.form.patchValue({
           enunciado: p.enunciado,

@@ -61,7 +61,7 @@
           <th class="px-3 py-3">ID</th>
           <th class="px-3 py-3">USUARIO CREACIÓN</th>
           <th class="px-3 py-3">NOMBRE</th>
-          <th class="px-3 py-3">TEMAS</th>
+          <th class="px-3 py-3">ESPECIALIDADES</th>
           <th class="px-3 py-3">ESTADO EXAMEN</th>
           <th class="px-3 py-3">PUNTAJE MÁX.</th>
           <th class="px-3 py-3">PREGUNTAS</th>
@@ -97,13 +97,13 @@
               <td class="px-3 py-3">{{ examen.usuario_creacion ?? '-' }}</td>
               <td class="px-3 py-3 text-left">{{ examen.nombre }}</td>
               <td class="px-3 py-3 text-left">
-                @for (tema of examen.temas.slice(0, 3); track tema) {
-                  <div class="text-xs leading-5">- {{ tema }}</div>
+                @for (esp of examen.especialidades.slice(0, 3); track esp.nombre) {
+                  <div class="text-xs leading-5">- {{ esp.nombre }} ({{ esp.cantidad }})</div>
                 }
-                @if (examen.temas.length > 3) {
-                  <div class="text-xs text-surface-400 leading-5">+{{ examen.temas.length - 3 }} más</div>
+                @if (examen.especialidades.length > 3) {
+                  <div class="text-xs text-surface-400 leading-5">+{{ examen.especialidades.length - 3 }} más</div>
                 }
-                @if (examen.temas.length === 0) { <span>-</span> }
+                @if (examen.especialidades.length === 0) { <span>-</span> }
               </td>
               <td class="px-3 py-3">
                 <span

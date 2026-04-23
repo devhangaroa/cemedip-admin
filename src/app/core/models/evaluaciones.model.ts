@@ -66,11 +66,19 @@ export interface IntentosFiltros {
   fecha_fin?: string;
 }
 
+export interface ExamenPreguntaItem {
+  id_examen_pregunta: number;
+  orden: number;
+  especialidad: string | null;
+  codigo: string | null;
+  enunciado: string | null;
+}
+
 export interface Examen {
   id_examen: number;
   usuario_creacion: string | null;
   nombre: string;
-  temas: string[];
+  especialidades: { nombre: string; cantidad: number }[];
   estado_examen: 'proximo' | 'en_prgoreso' | 'finalizado';
   puntaje_maximo: string;
   numero_preguntas: number;
@@ -94,7 +102,8 @@ export interface ExamenDetalle {
   numero_preguntas: number;
   puntaje_maximo: string;
   es_activo: boolean;
-  configuracion: { especialidades_ids?: number[]; tipos_ids?: number[]; temas_ids?: number[] } | null;
+  especialidades: { especialidad_id: number; especialidad_nombre: string; cantidad: number }[];
+  preguntas: ExamenPreguntaItem[];
   fecha_creacion: string;
   estado_examen: string;
 }
@@ -107,10 +116,8 @@ export interface ExamenFormInput {
   fecha_entrega: string;
   numero_intentos: number;
   duracion_minutos: number;
-  numero_preguntas: number;
   puntaje_maximo: number;
   es_activo: boolean;
-  configuracion?: { especialidades_ids: number[]; tipos_ids: number[]; temas_ids: number[] } | null;
 }
 
 export interface ExamenesFiltros {

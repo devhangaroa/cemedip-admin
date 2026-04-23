@@ -83,4 +83,23 @@ export class EvaluacionesService {
       data,
     );
   }
+
+  agregarPreguntasEspecialidad(
+    idExamen: number,
+    data: { especialidad_id: number; cantidad: number },
+  ): Observable<ApiSuccessResponse<ExamenDetalle>> {
+    return this.http.post<ApiSuccessResponse<ExamenDetalle>>(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/preguntas/`,
+      data,
+    );
+  }
+
+  quitarPreguntaExamen(
+    idExamen: number,
+    idExamenPregunta: number,
+  ): Observable<ApiSuccessResponse<ExamenDetalle>> {
+    return this.http.delete<ApiSuccessResponse<ExamenDetalle>>(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/preguntas/${idExamenPregunta}/`,
+    );
+  }
 }

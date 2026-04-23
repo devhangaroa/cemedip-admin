@@ -22,6 +22,7 @@ export class PreguntasService {
 
     if (filtros.page) params = params.set('page', filtros.page);
     if (filtros.page_size) params = params.set('page_size', filtros.page_size);
+    if (filtros.codigo?.trim()) params = params.set('codigo', filtros.codigo.trim());
     if (filtros.enunciado?.trim()) params = params.set('enunciado', filtros.enunciado.trim());
     if (filtros.alternativa?.trim()) params = params.set('alternativa', filtros.alternativa.trim());
     if (filtros.respuesta?.trim()) params = params.set('respuesta', filtros.respuesta.trim());

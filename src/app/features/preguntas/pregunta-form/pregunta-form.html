@@ -131,9 +131,19 @@
           }
         </div>
 
-        <div class="flex flex-col gap-1">
-          <label for="pf_anho" class="text-xs font-semibold tracking-wide text-surface-500">AÑO</label>
-          <input id="pf_anho" pInputText formControlName="anho" placeholder="Ej: 2023" />
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <label for="pf_anho" class="text-xs font-semibold tracking-wide text-surface-500">AÑO</label>
+            <input id="pf_anho" pInputText formControlName="anho" placeholder="Ej: 2023" />
+          </div>
+          @if (!esNuevo()) {
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-semibold tracking-wide text-surface-500">CÓDIGO</span>
+              <span class="rounded-xl border border-surface-200 bg-surface-50 px-4 py-2.5 text-sm text-surface-600">
+                {{ codigoPregunta() || '-' }}
+              </span>
+            </div>
+          }
         </div>
       </div>
 

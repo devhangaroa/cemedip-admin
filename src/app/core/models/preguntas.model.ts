@@ -1,5 +1,6 @@
 export interface PreguntaListadoItem {
   id_pregunta: number;
+  codigo: string | null;
   enunciado: string;
   especialidad: string | null;
   tema: string | null;
@@ -13,6 +14,7 @@ export interface PreguntaListadoItem {
 export interface PreguntasFiltros {
   page?: number;
   page_size?: number;
+  codigo?: string;
   enunciado?: string;
   alternativa?: string;
   respuesta?: string;
@@ -31,6 +33,7 @@ export interface AlternativaDetalle {
 
 export interface PreguntaDetalle {
   id_pregunta: number;
+  codigo: string | null;
   enunciado: string;
   anho: string | null;
   especialidad_id: number | null;

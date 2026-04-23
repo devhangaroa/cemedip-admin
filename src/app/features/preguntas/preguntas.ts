@@ -36,6 +36,7 @@ export class PreguntasComponent {
   private readonly confirmationService = inject(ConfirmationService);
 
   protected readonly filtrosForm = this.fb.group({
+    codigo: [''],
     enunciado: [''],
     alternativa: [''],
     respuesta: [''],
@@ -129,6 +130,7 @@ export class PreguntasComponent {
     this.filtros.set({
       page: 1,
       page_size: this.pageSize(),
+      codigo: raw.codigo || undefined,
       enunciado: raw.enunciado || undefined,
       alternativa: raw.alternativa || undefined,
       respuesta: raw.respuesta || undefined,
@@ -141,6 +143,7 @@ export class PreguntasComponent {
 
   limpiar() {
     this.filtrosForm.reset({
+      codigo: '',
       enunciado: '',
       alternativa: '',
       respuesta: '',

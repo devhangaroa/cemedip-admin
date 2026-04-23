@@ -51,6 +51,11 @@
   <form [formGroup]="filtrosForm" (ngSubmit)="buscar()" class="flex flex-col gap-4">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <div class="flex flex-col gap-1">
+        <label class="text-surface-500 text-xs font-semibold tracking-wide" for="preguntas-codigo">CÓDIGO</label>
+        <input id="preguntas-codigo" pInputText formControlName="codigo" placeholder="Buscar por código" />
+      </div>
+
+      <div class="flex flex-col gap-1">
         <label
           class="text-surface-500 text-xs font-semibold tracking-wide"
           for="preguntas-enunciado"
@@ -176,6 +181,7 @@
       <thead>
         <tr class="bg-primary text-white font-semibold tracking-wide">
             <th class="px-4 py-3">ID</th>
+            <th class="px-4 py-3">CÓDIGO</th>
             <th class="px-4 py-3 text-left">ENUNCIADO</th>
             <th class="px-4 py-3 text-left">ALTERNATIVAS</th>
             <th class="px-4 py-3 text-left">RESPUESTA</th>
@@ -191,14 +197,14 @@
           @if (isLoading()) {
             @for (i of [1, 2, 3, 4, 5]; track i) {
               <tr class="bg-surface-200">
-                <td colspan="10" class="px-4 py-4">
+                <td colspan="11" class="px-4 py-4">
                   <div class="h-4 w-full animate-pulse rounded bg-surface-300"></div>
                 </td>
               </tr>
             }
           } @else if (preguntas().length === 0) {
             <tr class="bg-surface-200">
-              <td colspan="10" class="px-4 py-12 text-surface-400">
+              <td colspan="11" class="px-4 py-12 text-surface-400">
                 <i class="pi pi-inbox mb-3 block text-4xl"></i>
                 No se encontraron preguntas.
               </td>
@@ -206,7 +212,8 @@
           } @else {
             @for (pregunta of preguntas(); track pregunta.id_pregunta) {
               <tr class="bg-surface-200 text-black transition-colors hover:bg-surface-300 align-top">
-                <td class="text-surface-700 px-4 py-3 font-semibold">{{ pregunta.id_pregunta }}</td>
+                <td class="px-4 py-3">{{ pregunta.id_pregunta }}</td>
+                <td class="px-4 py-3">{{ pregunta.codigo }}</td>
                 <td class="px-4 py-3">
                   <span [title]="pregunta.enunciado">{{
                     truncateText(pregunta.enunciado, 160)

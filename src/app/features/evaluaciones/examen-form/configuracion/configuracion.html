@@ -3,9 +3,11 @@
     <i class="pi pi-spinner pi-spin text-3xl text-primary"></i>
   </div>
 } @else {
+
+  <!-- ─── Formulario de datos básicos ─── -->
   <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-6">
 
-    <!-- Fila 1: Nombre -->
+    <!-- Nombre -->
     <div class="flex flex-col gap-1">
       <label for="cfg_nombre" class="text-xs font-semibold tracking-wide text-surface-500">NOMBRE</label>
       <input
@@ -20,62 +22,13 @@
       }
     </div>
 
-    <!-- Fila 2: Descripción -->
+    <!-- Descripción -->
     <div class="flex flex-col gap-1">
       <label for="cfg_descripcion" class="text-xs font-semibold tracking-wide text-surface-500">DESCRIPCIÓN</label>
       <textarea id="cfg_descripcion" pTextarea formControlName="descripcion" placeholder="Descripción del examen" rows="2"></textarea>
     </div>
 
-    <!-- Fila 3: Especialidades + Tipos -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <div class="flex flex-col gap-1">
-        <label for="cfg_especialidades" class="text-xs font-semibold tracking-wide text-surface-500">ESPECIALIDADES</label>
-        <p-multiselect
-          inputId="cfg_especialidades"
-          formControlName="especialidades_ids"
-          [options]="especialidadOpciones()"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Selecciona especialidades"
-          display="chip"
-          styleClass="w-full"
-          (onChange)="onEspecialidadChange($event.value)"
-        />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label for="cfg_tipos" class="text-xs font-semibold tracking-wide text-surface-500">TIPOS</label>
-        <p-multiselect
-          inputId="cfg_tipos"
-          formControlName="tipos_ids"
-          [options]="tipoOpciones()"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Selecciona tipos"
-          display="chip"
-          styleClass="w-full"
-          [disabled]="!selectedEspecialidades().length"
-          (onChange)="onTipoChange($event.value)"
-        />
-      </div>
-    </div>
-
-    <!-- Fila 4: Temas -->
-    <div class="flex flex-col gap-1">
-      <label for="cfg_temas" class="text-xs font-semibold tracking-wide text-surface-500">TEMAS</label>
-      <p-multiselect
-        inputId="cfg_temas"
-        formControlName="temas_ids"
-        [options]="temaOpciones()"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Selecciona temas"
-        display="chip"
-        styleClass="w-full"
-        [disabled]="!selectedEspecialidades().length || !selectedTipos().length"
-      />
-    </div>
-
-    <!-- Fila 5: Estado examen (readonly) + Estado activo -->
+    <!-- Estado examen (readonly) + Estado activo -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div class="flex flex-col gap-1">
         <span class="text-xs font-semibold tracking-wide text-surface-500">ESTADO DEL EXAMEN</span>
@@ -109,7 +62,7 @@
       </div>
     </div>
 
-    <!-- Fila 6: Fechas + Intentos -->
+    <!-- Fechas + Intentos -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div class="flex flex-col gap-1">
         <label for="cfg_fecha_inicio" class="text-xs font-semibold tracking-wide text-surface-500">FECHA INICIAL</label>
@@ -156,8 +109,8 @@
       </div>
     </div>
 
-    <!-- Fila 7: Duración + Preguntas + Puntaje -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <!-- Duración + Puntaje -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div class="flex flex-col gap-1">
         <label for="cfg_duracion" class="text-xs font-semibold tracking-wide text-surface-500">DURACIÓN (minutos)</label>
         <p-inputnumber
@@ -169,20 +122,6 @@
           [class.border-red-400]="formSubmitted() && form.get('duracion_minutos')?.invalid"
         />
         @if (formSubmitted() && form.get('duracion_minutos')?.invalid) {
-          <span class="text-xs text-red-500">Campo requerido.</span>
-        }
-      </div>
-      <div class="flex flex-col gap-1">
-        <label for="cfg_numero_preguntas" class="text-xs font-semibold tracking-wide text-surface-500">NÚMERO DE PREGUNTAS</label>
-        <p-inputnumber
-          inputId="cfg_numero_preguntas"
-          formControlName="numero_preguntas"
-          placeholder="Ej. 40"
-          [min]="1"
-          styleClass="w-full"
-          [class.border-red-400]="formSubmitted() && form.get('numero_preguntas')?.invalid"
-        />
-        @if (formSubmitted() && form.get('numero_preguntas')?.invalid) {
           <span class="text-xs text-red-500">Campo requerido.</span>
         }
       </div>
@@ -215,4 +154,117 @@
     </div>
 
   </form>
+
+  <!-- ─── Gestión de preguntas (solo cuando el examen ya existe) ─── -->
+  @if (!esNuevo()) {
+    <div class="flex flex-col gap-5 mt-8 pt-6 border-t border-surface-200">
+
+      <!-- Encabezado + resumen de especialidades -->
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <h3 class="text-sm font-bold tracking-wide text-surface-600 uppercase">Preguntas del examen</h3>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-surface-500">Total: <strong>{{ totalPreguntas() }}</strong></span>
+            @if (!puedeEditar() && estadoExamen()) {
+              <span class="text-xs bg-surface-300 text-surface-600 rounded px-2 py-0.5 font-semibold">Solo lectura</span>
+            }
+          </div>
+        </div>
+
+        @if (especialidadesResumen().length > 0) {
+          <div class="flex flex-wrap gap-2">
+            @for (esp of especialidadesResumen(); track esp.nombre) {
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                {{ esp.nombre }}
+                <span class="rounded-full bg-primary text-white px-1.5 py-0.5 text-[10px]">{{ esp.cantidad }}</span>
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Agregar por especialidad -->
+      <div class="flex flex-col gap-2 p-4 rounded-lg bg-surface-100">
+        <span class="text-xs font-semibold tracking-wide text-surface-500">AGREGAR PREGUNTAS POR ESPECIALIDAD</span>
+        <div [formGroup]="agregarForm" class="flex items-end gap-3 flex-wrap sm:flex-nowrap">
+          <div class="flex flex-col gap-1 flex-1 min-w-48">
+            <label class="text-xs font-semibold tracking-wide text-surface-500">ESPECIALIDAD</label>
+            <p-select
+              formControlName="especialidad_id"
+              [options]="especialidadOpciones()"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar"
+              styleClass="w-full"
+            />
+          </div>
+          <div class="flex flex-col gap-1 w-36">
+            <label class="text-xs font-semibold tracking-wide text-surface-500">CANTIDAD</label>
+            <p-inputnumber
+              formControlName="cantidad"
+              placeholder="Ej. 20"
+              [min]="1"
+              styleClass="w-full"
+            />
+          </div>
+          <p-button
+            label="Agregar"
+            icon="pi pi-plus"
+            [loading]="isAdding()"
+            [disabled]="agregarForm.invalid"
+            (click)="agregarDesdeEspecialidad()"
+          />
+        </div>
+      </div>
+
+      <!-- Tabla de preguntas -->
+      @if (preguntas().length > 0) {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-separate border-spacing-y-1 min-w-[700px]">
+            <thead>
+              <tr class="bg-primary text-white font-semibold tracking-wide text-left">
+                <th class="px-3 py-2 w-12">#</th>
+                <th class="px-3 py-2 w-40">ESPECIALIDAD</th>
+                <th class="px-3 py-2 w-28">CÓDIGO</th>
+                <th class="px-3 py-2">ENUNCIADO</th>
+                <th class="px-3 py-2 w-16 text-center">ACCIÓN</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of preguntas(); track p.id_examen_pregunta) {
+                <tr class="bg-surface-200 hover:bg-surface-300 transition-colors text-left">
+                  <td class="px-3 py-2 text-surface-400 text-xs">{{ p.orden }}</td>
+                  <td class="px-3 py-2 text-xs">{{ p.especialidad ?? '-' }}</td>
+                  <td class="px-3 py-2 font-mono text-xs text-surface-500">{{ p.codigo ?? '-' }}</td>
+                  <td class="px-3 py-2 text-xs leading-5">{{ p.enunciado }}</td>
+                  <td class="px-3 py-2 text-center">
+                    <p-button
+                      icon="pi pi-times"
+                      severity="danger"
+                      size="small"
+                      [pt]="{ root: { class: 'w-7 h-7' } }"
+                      [disabled]="!puedeEditar()"
+                      (click)="quitarPregunta(p.id_examen_pregunta)"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="flex flex-col items-center py-8 text-surface-400 gap-2">
+          <i class="pi pi-list-check text-3xl"></i>
+          <span class="text-sm">No hay preguntas en el examen.</span>
+          <span class="text-xs">Usa el formulario de arriba para agregar preguntas por especialidad.</span>
+        </div>
+      }
+
+    </div>
+  } @else {
+    <p class="mt-6 pt-6 border-t border-surface-200 text-sm text-surface-400 text-center">
+      Guarda el examen primero para poder agregar preguntas.
+    </p>
+  }
+
 }
