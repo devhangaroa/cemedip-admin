@@ -108,4 +108,11 @@ export class EvaluacionesService {
       `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/resultados/`,
     );
   }
+
+  generarReporteResultados(idExamen: number, formato: string): Observable<Blob> {
+    return this.http.get(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/resultados/reporte/?formato=${formato}`,
+      { responseType: 'blob' },
+    );
+  }
 }

@@ -10,6 +10,27 @@
 } @else {
   <div class="flex flex-col gap-6">
 
+    <!-- Reporte -->
+    <div class="flex w-full items-center gap-2 sm:w-1/2">
+      <select
+        class="h-9 flex-1 rounded-lg border border-surface-200 bg-white px-3 text-sm text-surface-700 focus:outline-none focus:ring-1 focus:ring-primary"
+        [value]="reporteFormato()"
+        (change)="reporteFormato.set($any($event.target).value)"
+      >
+        <option value="excel">Excel (.xlsx)</option>
+        <option value="csv">CSV (.csv)</option>
+        <option value="txt">TXT (.txt)</option>
+      </select>
+      <p-button
+        label="Descargar datos"
+        icon="pi pi-download"
+        severity="secondary"
+        size="small"
+        [loading]="isGeneratingReporte()"
+        (click)="generarReporte()"
+      />
+    </div>
+
     <!-- Resumen -->
     <div class="flex items-center gap-4 flex-wrap text-sm text-surface-500">
       <span>Total de intentos: <strong class="text-surface-700">{{ intentos().length }}</strong></span>
@@ -20,54 +41,47 @@
     <!-- Leyenda -->
     <div class="flex items-center gap-4 text-xs text-surface-500">
       <span class="flex items-center gap-1">
-        <i class="pi pi-check text-green-600" style="font-size:11px"></i> Correcta
+        <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span> Correcta
       </span>
       <span class="flex items-center gap-1">
-        <i class="pi pi-times text-red-500" style="font-size:11px"></i> Incorrecta
+        <span class="inline-block w-2 h-2 rounded-full bg-red-400"></span> Incorrecta
       </span>
       <span class="flex items-center gap-1">
         <span class="text-surface-300 font-bold">–</span> Sin responder
       </span>
+      <span class="text-surface-400">· Celdas muestran el puntaje obtenido</span>
     </div>
 
-    <!-- Tabla con scroll; max-height fijo para dejar ver el gráfico debajo -->
-    <div class="overflow-auto rounded border border-surface-200" style="max-height: 480px">
-      <table class="border-separate border-spacing-0 text-xs whitespace-nowrap">
+    <!-- Tabla -->
+    <div class="overflow-auto" style="max-height: 480px">
+      <table class="w-full text-xs border-separate border-spacing-y-1.5 whitespace-nowrap">
 
         <thead>
-          <tr>
-            <th
-              class="sticky top-0 left-0 z-30 bg-primary text-white font-semibold tracking-wide text-left px-3 py-2.5 border-b-2 border-r-2 border-white/20"
-              style="min-width: 220px"
-            >
+          <tr class="bg-primary text-white font-semibold tracking-wide">
+            <th class="sticky top-0 left-0 z-30 bg-primary text-left px-3 py-2.5" style="min-width: 220px">
               ESTUDIANTE
             </th>
             @for (p of preguntas(); track p.pregunta_id) {
-              <th
-                class="sticky top-0 z-20 bg-primary text-white font-semibold text-center py-2.5 border-b-2 border-r border-white/10"
-                style="width: 40px; min-width: 40px"
-              >
+              <th class="sticky top-0 z-20 bg-primary text-center py-2.5" style="width: 44px; min-width: 44px">
                 P{{ p.orden }}
               </th>
             }
-            <th class="sticky top-0 z-20 bg-primary text-white font-semibold text-center px-3 py-2.5 border-b-2 border-l-2 border-white/20 whitespace-nowrap">ESTADO</th>
-            <th class="sticky top-0 z-20 bg-primary text-white font-semibold text-center px-3 py-2.5 border-b-2 border-r border-white/10 whitespace-nowrap">CORRECTAS</th>
-            <th class="sticky top-0 z-20 bg-primary text-white font-semibold text-center px-3 py-2.5 border-b-2 border-r border-white/10">%</th>
-            <th class="sticky top-0 z-20 bg-primary text-white font-semibold text-center px-3 py-2.5 border-b-2 border-r border-white/10 whitespace-nowrap">PUNTAJE</th>
-            <th class="sticky top-0 z-20 bg-primary text-white font-semibold text-center px-3 py-2.5 border-b-2 border-r border-white/10 whitespace-nowrap">DURACIÓN</th>
-            <th class="sticky top-0 z-20 bg-primary text-white font-semibold text-center px-3 py-2.5 border-b-2 whitespace-nowrap">RESULTADO</th>
+            <th class="sticky top-0 z-20 bg-primary text-center px-3 py-2.5 whitespace-nowrap">ESTADO</th>
+            <th class="sticky top-0 z-20 bg-primary text-center px-3 py-2.5 whitespace-nowrap">CORRECTAS</th>
+            <th class="sticky top-0 z-20 bg-primary text-center px-3 py-2.5">%</th>
+            <th class="sticky top-0 z-20 bg-primary text-center px-3 py-2.5 whitespace-nowrap">PUNTAJE</th>
+            <th class="sticky top-0 z-20 bg-primary text-center px-3 py-2.5 whitespace-nowrap">DURACIÓN</th>
+            <th class="sticky top-0 z-20 bg-primary text-center px-3 py-2.5 whitespace-nowrap">RESULTADO</th>
           </tr>
         </thead>
 
         <tbody>
           @for (r of intentos(); track r.id_intento) {
-            <tr>
+            <tr [class]="r.es_ultimo_intento ? 'bg-green-50 hover:bg-green-100' : 'bg-surface-100 hover:bg-surface-200'">
               <td
-                class="sticky left-0 z-10 px-3 py-2 border-b border-r-2"
-                [class]="r.es_ultimo_intento
-                  ? 'bg-green-50 border-green-100 border-r-green-200'
-                  : 'bg-white border-surface-200'"
+                class="sticky left-0 z-10 px-3 py-2.5"
                 style="min-width: 220px"
+                [class]="r.es_ultimo_intento ? 'bg-green-50' : 'bg-surface-100'"
               >
                 <div class="font-semibold text-surface-700 leading-tight">
                   {{ r.apellidos ?? '-' }}, {{ r.nombres ?? '-' }}
@@ -79,25 +93,23 @@
 
               @for (p of preguntas(); track p.pregunta_id) {
                 @let resp = getRespuesta(r, p.pregunta_id);
-                <td
-                  class="text-center border-b border-r border-surface-100 py-2"
-                  style="width: 40px"
-                  [class]="r.es_ultimo_intento ? 'bg-green-500/5' : 'bg-surface-50'"
-                >
-                  @if (resp === 'correcta') {
-                    <i class="pi pi-check text-green-600" style="font-size:11px"></i>
-                  } @else if (resp === 'incorrecta') {
-                    <i class="pi pi-times text-red-500" style="font-size:11px"></i>
+                <td class="text-center py-2.5 font-mono" style="width: 44px; font-size: 10px">
+                  @if (resp.estado === 'sin_responder') {
+                    <span class="text-surface-400 font-bold">–</span>
+                  } @else if (resp.puntaje !== null) {
+                    <span [class]="resp.estado === 'correcta' ? 'text-green-700 font-semibold' : 'text-red-500'">
+                      {{ resp.puntaje }}
+                    </span>
                   } @else {
-                    <span class="text-surface-300 font-bold">–</span>
+                    <i
+                      [class]="resp.estado === 'correcta' ? 'pi pi-check text-green-600' : 'pi pi-times text-red-500'"
+                      style="font-size:10px"
+                    ></i>
                   }
                 </td>
               }
 
-              <td
-                class="text-center px-3 py-2 border-b border-l-2"
-                [class]="r.es_ultimo_intento ? 'bg-green-500/5 border-green-100' : 'bg-surface-50 border-surface-200'"
-              >
+              <td class="text-center px-3 py-2.5">
                 <span
                   class="inline-block rounded px-1.5 py-0.5 font-semibold text-white"
                   style="font-size:10px"
@@ -106,34 +118,11 @@
                   {{ estadoLabel(r.estado_intento) }}
                 </span>
               </td>
-              <td
-                class="text-center font-mono px-3 py-2 border-b border-r border-surface-100"
-                [class]="r.es_ultimo_intento ? 'bg-green-500/5' : 'bg-surface-50'"
-              >
-                {{ r.correctas }}/{{ r.total_preguntas }}
-              </td>
-              <td
-                class="text-center font-mono px-3 py-2 border-b border-r border-surface-100"
-                [class]="r.es_ultimo_intento ? 'bg-green-500/5' : 'bg-surface-50'"
-              >
-                {{ r.porcentaje !== null ? r.porcentaje + '%' : '-' }}
-              </td>
-              <td
-                class="text-center font-mono px-3 py-2 border-b border-r border-surface-100"
-                [class]="r.es_ultimo_intento ? 'bg-green-500/5' : 'bg-surface-50'"
-              >
-                {{ r.puntaje_obtenido ?? '-' }}
-              </td>
-              <td
-                class="text-center text-surface-500 px-3 py-2 border-b border-r border-surface-100"
-                [class]="r.es_ultimo_intento ? 'bg-green-500/5' : 'bg-surface-50'"
-              >
-                {{ r.duracion_display ?? '-' }}
-              </td>
-              <td
-                class="text-center px-3 py-2 border-b"
-                [class]="r.es_ultimo_intento ? 'bg-green-500/5 border-green-100' : 'bg-surface-50 border-surface-100'"
-              >
+              <td class="text-center font-mono px-3 py-2.5">{{ r.correctas }}/{{ r.total_preguntas }}</td>
+              <td class="text-center font-mono px-3 py-2.5">{{ r.porcentaje !== null ? r.porcentaje + '%' : '-' }}</td>
+              <td class="text-center font-mono px-3 py-2.5">{{ r.puntaje_obtenido ?? '-' }}</td>
+              <td class="text-center text-surface-500 px-3 py-2.5">{{ r.duracion_display ?? '-' }}</td>
+              <td class="text-center px-3 py-2.5">
                 @if (r.es_ultimo_intento) {
                   <span
                     class="inline-flex items-center gap-1 rounded-full bg-green-500 text-white px-2 py-0.5 font-semibold"

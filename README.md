@@ -45,7 +45,7 @@ Desarrollo local:
 npm start
 ```
 
-La aplicación queda disponible en `http://localhost:4200/`.
+La aplicación queda disponible en `http://localhost:4201/`.
 
 ## Scripts disponibles
 

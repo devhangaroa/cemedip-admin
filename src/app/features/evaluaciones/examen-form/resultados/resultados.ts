@@ -23,6 +23,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+import { ButtonModule } from 'primeng/button';
 import { EvaluacionesService } from '@core/services/evaluaciones.service';
 import { ExamenResultadoIntento, ExamenResultadosData } from '@core/models/evaluaciones.model';
 
@@ -54,7 +55,7 @@ const RANGO_COLORS = [
 
 @Component({
   selector: 'app-examen-resultados',
-  imports: [],
+  imports: [ButtonModule],
   templateUrl: './resultados.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -80,6 +81,9 @@ export class ExamenResultadosComponent implements OnDestroy {
   protected readonly totalResultadosFinales = computed(
     () => this.intentos().filter((r) => r.es_ultimo_intento).length,
   );
+
+  protected readonly reporteFormato = signal<'excel' | 'csv' | 'txt'>('excel');
+  protected readonly isGeneratingReporte = signal(false);
 
   private readonly canvasSignal = signal<HTMLCanvasElement | null>(null);
   private chart?: Chart;
@@ -163,6 +167,26 @@ export class ExamenResultadosComponent implements OnDestroy {
     this.chart?.destroy();
   }
 
+  protected generarReporte(): void {
+    const idStr = this.route.parent?.snapshot.paramMap.get('id');
+    if (!idStr) return;
+    this.isGeneratingReporte.set(true);
+    const formato = this.reporteFormato();
+    const ext = formato === 'excel' ? 'xlsx' : formato;
+    this.evaluacionesService.generarReporteResultados(Number(idStr), formato).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_examen_${idStr}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.isGeneratingReporte.set(false);
+      },
+      error: () => this.isGeneratingReporte.set(false),
+    });
+  }
+
   protected estadoLabel(estado: string): string {
     return ESTADO_LABELS[estado] ?? estado;
   }
@@ -174,7 +198,7 @@ export class ExamenResultadosComponent implements OnDestroy {
   protected getRespuesta(
     r: ExamenResultadoIntento,
     preguntaId: number,
-  ): 'correcta' | 'incorrecta' | 'sin_responder' {
-    return r.respuestas[String(preguntaId)] ?? 'sin_responder';
+  ): { estado: 'correcta' | 'incorrecta' | 'sin_responder'; puntaje: string | null } {
+    return r.respuestas[String(preguntaId)] ?? { estado: 'sin_responder', puntaje: null };
   }
 }

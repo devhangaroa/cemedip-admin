@@ -147,7 +147,7 @@ export interface ExamenResultadoIntento {
   porcentaje: string | null;
   puntaje_obtenido: string | null;
   duracion_display: string | null;
-  respuestas: Record<string, 'correcta' | 'incorrecta' | 'sin_responder'>;
+  respuestas: Record<string, { estado: 'correcta' | 'incorrecta' | 'sin_responder'; puntaje: string | null }>;
 }
 
 export interface ExamenResultadosData {
