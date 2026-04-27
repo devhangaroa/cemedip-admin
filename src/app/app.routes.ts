@@ -82,6 +82,11 @@ export const routes: Routes = [
           import('@features/evaluaciones/intentos/intentos').then((m) => m.IntentosComponent),
       },
       {
+        path: 'evaluaciones/reportes',
+        loadComponent: () =>
+          import('@features/evaluaciones/reportes/reportes').then((m) => m.ReportesComponent),
+      },
+      {
         path: 'evaluaciones/graficos',
         loadComponent: () =>
           import('@features/evaluaciones/graficos/graficos').then((m) => m.GraficosComponent),

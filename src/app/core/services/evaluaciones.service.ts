@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/constants/api';
 import { ApiSuccessResponse } from '@core/models/api.model';
-import { Examen, ExamenDetalle, ExamenFormInput, ExamenesFiltros, ExamenResultadosData, GraficosData, Intento, IntentoDetalleAdmin, IntentosFiltros } from '@core/models/evaluaciones.model';
+import { Examen, ExamenDetalle, ExamenFormInput, ExamenesFiltros, ExamenResultadosData, GraficosData, Intento, IntentoDetalleAdmin, IntentosFiltros, ReportePregunta, ReportesFiltros } from '@core/models/evaluaciones.model';
 
 @Injectable({ providedIn: 'root' })
 export class EvaluacionesService {
@@ -112,6 +112,31 @@ export class EvaluacionesService {
   getGraficos(): Observable<ApiSuccessResponse<GraficosData>> {
     return this.http.get<ApiSuccessResponse<GraficosData>>(
       `${API_BASE_URL}/admin/evaluaciones/graficos/`,
+    );
+  }
+
+  getReportes(filtros: ReportesFiltros): Observable<ApiSuccessResponse<ReportePregunta[]>> {
+    let params = new HttpParams();
+    if (filtros.page) params = params.set('page', filtros.page);
+    if (filtros.page_size) params = params.set('page_size', filtros.page_size);
+    if (filtros.estado) params = params.set('estado', filtros.estado);
+    return this.http.get<ApiSuccessResponse<ReportePregunta[]>>(
+      `${API_BASE_URL}/admin/evaluaciones/reportes/`,
+      { params },
+    );
+  }
+
+  resolverReporte(id: number, estado: string, respuesta_solucion?: string): Observable<ApiSuccessResponse<ReportePregunta>> {
+    return this.http.patch<ApiSuccessResponse<ReportePregunta>>(
+      `${API_BASE_URL}/admin/evaluaciones/reportes/${id}/`,
+      { estado, respuesta_solucion },
+    );
+  }
+
+  resolverReportesBulk(ids: number[], estado: string, respuesta_solucion?: string): Observable<ApiSuccessResponse<{ resueltos: number }>> {
+    return this.http.post<ApiSuccessResponse<{ resueltos: number }>>(
+      `${API_BASE_URL}/admin/evaluaciones/reportes/resolver/`,
+      { ids, estado, respuesta_solucion },
     );
   }
 

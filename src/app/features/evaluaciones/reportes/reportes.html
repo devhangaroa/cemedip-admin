@@ -1,0 +1,256 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold tracking-wide text-surface-700">REPORTES</h1>
+  </div>
+
+  <!-- Tabs de estado -->
+  <div class="flex flex-wrap gap-2">
+    @for (tab of TABS; track tab.value) {
+      <button
+        (click)="cambiarFiltro(tab.value)"
+        class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+        [class]="filtroEstado() === tab.value
+          ? 'bg-primary text-white'
+          : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Barra bulk -->
+  @if (selectedIds().size > 0) {
+    <div class="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+      <span class="text-sm font-semibold text-primary">{{ selectedIds().size }} seleccionado(s)</span>
+      <div class="ml-auto flex gap-2">
+        <p-button label="Marcar solucionado" icon="pi pi-check" severity="success" size="small" (click)="resolverBulk('solucionado')" />
+        <p-button label="Archivar" icon="pi pi-inbox" severity="secondary" size="small" (click)="resolverBulk('archivado')" />
+      </div>
+    </div>
+  }
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm border-separate border-spacing-y-1.5 text-center min-w-[900px]">
+      <thead>
+        <tr class="bg-primary text-white font-semibold tracking-wide">
+          <th class="px-3 py-3">
+            <input
+              type="checkbox"
+              class="h-4 w-4 cursor-pointer accent-white"
+              [checked]="allSelected()"
+              [indeterminate]="someSelected()"
+              (change)="toggleSelectAll()"
+            />
+          </th>
+          <th class="px-3 py-3">FECHA</th>
+          <th class="px-3 py-3">ESPECIALIDAD</th>
+          <th class="px-3 py-3 text-left">PREGUNTA</th>
+          <th class="px-3 py-3">ESTUDIANTE</th>
+          <th class="px-3 py-3 text-left">RAZÓN</th>
+          <th class="px-3 py-3">ESTADO</th>
+          <th class="px-3 py-3">ACCIÓN</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="bg-surface-200">
+              <td colspan="8" class="px-4 py-4">
+                <div class="h-4 w-full animate-pulse rounded bg-surface-300"></div>
+              </td>
+            </tr>
+          }
+        } @else if (reportes().length === 0) {
+          <tr class="bg-surface-200">
+            <td colspan="8" class="px-4 py-12 text-surface-400">
+              <i class="pi pi-inbox mb-3 text-4xl block"></i>
+              No se encontraron reportes.
+            </td>
+          </tr>
+        } @else {
+          @for (r of reportes(); track r.id_reporte_pregunta) {
+            <tr
+              class="text-black transition-colors cursor-pointer"
+              [class]="isSelected(r.id_reporte_pregunta) ? 'bg-primary/10 hover:bg-primary/15' : 'bg-surface-200 hover:bg-surface-300'"
+              (click)="abrirModal(r)"
+            >
+              <td class="px-3 py-3" (click)="$event.stopPropagation()">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 cursor-pointer accent-primary"
+                  [checked]="isSelected(r.id_reporte_pregunta)"
+                  (change)="toggleSelect(r.id_reporte_pregunta)"
+                />
+              </td>
+              <td class="px-3 py-3 whitespace-nowrap">{{ r.fecha_creacion | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-3 py-3">{{ r.pregunta.especialidad ?? '-' }}</td>
+              <td class="px-3 py-3 text-left max-w-xs">
+                <span class="line-clamp-2">{{ r.pregunta.enunciado ?? '-' }}</span>
+              </td>
+              <td class="px-3 py-3">{{ nombreCompleto(r) }}</td>
+              <td class="px-3 py-3 text-left max-w-xs">
+                <span class="line-clamp-1">{{ r.razon }}</span>
+              </td>
+              <td class="px-3 py-3">
+                @switch (r.estado_reporte) {
+                  @case ('sin_respuesta') {
+                    <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold text-white bg-amber-400">Pendiente</span>
+                  }
+                  @case ('solucionado') {
+                    <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold text-white bg-green-500">Solucionado</span>
+                  }
+                  @case ('archivado') {
+                    <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold text-white bg-surface-400">Archivado</span>
+                  }
+                }
+              </td>
+              <td class="px-3 py-3" (click)="$event.stopPropagation()">
+                <div class="flex items-center justify-center">
+                  <p-button icon="pi pi-eye" severity="secondary" size="small"
+                    [pt]="{ root: { class: 'w-8 h-8' } }"
+                    (click)="abrirModal(r)"
+                  />
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  @if (paginador()) {
+    <p-paginator
+      [first]="paginaActual()"
+      [rows]="pageSize()"
+      [rowsPerPageOptions]="[10, 50, 100, 200]"
+      [totalRecords]="totalRegistros()"
+      [showFirstLastIcon]="true"
+      [showPageLinks]="true"
+      (onPageChange)="onPageChange($event)"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Total {totalRecords} reportes"
+    />
+  }
+
+</div>
+
+<!-- Modal detalle -->
+<p-dialog
+  [visible]="modalVisible()"
+  (onHide)="onModalHide()"
+  [modal]="true"
+  [style]="{ width: '90vw', 'max-width': '780px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <ng-template pTemplate="header">
+    <span class="font-semibold text-surface-700">
+      {{ modalReporte()?.pregunta?.especialidad ?? 'Reporte de Pregunta' }}
+    </span>
+  </ng-template>
+
+  @if (modalReporte(); as r) {
+    <div class="flex flex-col gap-4">
+
+      <!-- Pregunta -->
+      <div>
+        <div class="mb-1 flex items-center gap-2 text-xs text-surface-400">
+          @if (r.pregunta.codigo) { <span>{{ r.pregunta.codigo }}</span><span>·</span> }
+          <span>{{ r.tipo_intento === 'examen' ? 'Examen' : 'Training' }}</span>
+        </div>
+        <p class="text-sm leading-relaxed text-surface-700">{{ r.pregunta.enunciado ?? '(sin enunciado)' }}</p>
+      </div>
+
+      <!-- Alternativas -->
+      @if (r.alternativas.length > 0) {
+        <div class="flex flex-col gap-1.5">
+          @for (alt of r.alternativas; track alt.identificador_letra) {
+            <div
+              class="flex items-start gap-2 rounded-lg px-3 py-2 text-sm"
+              [class]="alt.es_correcta
+                ? 'bg-green-50 text-green-800'
+                : alt.es_elegida
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-surface-50 text-surface-600'"
+            >
+              <span class="shrink-0 font-semibold">{{ alt.identificador_letra }}.</span>
+              <span class="flex-1">{{ alt.contenido }}</span>
+              @if (alt.es_correcta) { <i class="pi pi-check shrink-0 text-green-600"></i> }
+              @else if (alt.es_elegida) { <i class="pi pi-times shrink-0 text-red-500"></i> }
+            </div>
+          }
+        </div>
+      }
+
+      <hr class="border-surface-200" />
+
+      <!-- Info del reporte -->
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-xs font-semibold tracking-wide text-surface-400">ESTUDIANTE</p>
+          <p class="mt-0.5 text-surface-700">{{ nombreCompleto(r) }}</p>
+          @if (r.estudiante.identificacion) {
+            <p class="text-xs text-surface-400">{{ r.estudiante.identificacion }}</p>
+          }
+        </div>
+        <div>
+          <p class="text-xs font-semibold tracking-wide text-surface-400">FECHA</p>
+          <p class="mt-0.5 text-surface-700">{{ r.fecha_creacion | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold tracking-wide text-surface-400">RAZÓN DEL REPORTE</p>
+        <p class="mt-1 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{{ r.razon }}</p>
+      </div>
+
+      @if (r.respuesta_solucion) {
+        <div>
+          <p class="text-xs font-semibold tracking-wide text-surface-400">RESPUESTA</p>
+          <p class="mt-1 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">{{ r.respuesta_solucion }}</p>
+          @if (r.usuario_respuesta) {
+            <p class="mt-1 text-xs text-surface-400">— {{ r.usuario_respuesta }}</p>
+          }
+        </div>
+      }
+
+      <!-- Acciones (solo si está pendiente) -->
+      @if (r.estado_reporte === 'sin_respuesta') {
+        <div class="flex flex-col gap-3 border-t border-surface-200 pt-4">
+          <div>
+            <label class="mb-1 block text-xs font-semibold tracking-wide text-surface-400">RESPUESTA (opcional)</label>
+            <textarea
+              rows="3"
+              placeholder="Agregar respuesta o solución..."
+              class="w-full rounded-lg border border-surface-300 px-3 py-2 text-sm text-surface-700 focus:border-primary focus:outline-none"
+              [value]="resolverRespuesta()"
+              (input)="resolverRespuesta.set($any($event.target).value)"
+            ></textarea>
+          </div>
+          <div class="flex gap-2">
+            <p-button
+              label="Marcar solucionado"
+              icon="pi pi-check"
+              severity="success"
+              [loading]="isResolviendo()"
+              (click)="resolverIndividual('solucionado')"
+            />
+            <p-button
+              label="Archivar"
+              icon="pi pi-inbox"
+              severity="secondary"
+              [loading]="isResolviendo()"
+              (click)="resolverIndividual('archivado')"
+            />
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+</p-dialog>

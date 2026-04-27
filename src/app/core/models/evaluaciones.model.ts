@@ -172,6 +172,41 @@ export interface GraficoEstudiante {
   porcentaje_promedio?: number;
 }
 
+export interface ReportePreguntaAlternativa {
+  identificador_letra: string;
+  contenido: string;
+  es_elegida: boolean;
+  es_correcta: boolean;
+}
+
+export interface ReportePregunta {
+  id_reporte_pregunta: number;
+  fecha_creacion: string;
+  razon: string;
+  estado_reporte: 'sin_respuesta' | 'solucionado' | 'archivado';
+  respuesta_solucion: string | null;
+  usuario_respuesta: string | null;
+  tipo_intento: 'training' | 'examen';
+  pregunta: {
+    id_pregunta: number | null;
+    codigo: string | null;
+    enunciado: string | null;
+    especialidad: string | null;
+  };
+  estudiante: {
+    nombres: string | null;
+    apellidos: string | null;
+    identificacion: string | null;
+  };
+  alternativas: ReportePreguntaAlternativa[];
+}
+
+export interface ReportesFiltros {
+  page?: number;
+  page_size?: number;
+  estado?: string;
+}
+
 export interface GraficosEspecialidad {
   especialidad: string;
   correctas: number;
