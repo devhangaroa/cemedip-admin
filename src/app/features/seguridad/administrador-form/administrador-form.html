@@ -1,3 +1,10 @@
+<app-cambiar-contrasena-dialog
+  [visible]="dialogContrasenaVisible()"
+  (visibleChange)="dialogContrasenaVisible.set($event)"
+  [loading]="isSavingContrasena()"
+  (confirmar)="cambiarContrasena($event)"
+/>
+
 <div class="flex flex-col gap-6">
 
   <!-- Encabezado -->
@@ -81,6 +88,15 @@
           [label]="esNuevo() ? 'Crear Administrador' : 'Guardar Cambios'"
           [loading]="isSaving()"
         />
+        @if (!esNuevo()) {
+          <p-button
+            type="button"
+            label="Cambiar contraseña"
+            icon="pi pi-lock"
+            severity="secondary"
+            (click)="dialogContrasenaVisible.set(true)"
+          />
+        }
       </div>
 
     </form>

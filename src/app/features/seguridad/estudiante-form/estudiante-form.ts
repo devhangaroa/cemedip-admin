@@ -15,6 +15,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { SkeletonFieldComponent } from '@shared/components/skeleton-field/skeleton-field';
+import { CambiarContrasenaDialogComponent } from '@shared/components/cambiar-contrasena-dialog/cambiar-contrasena-dialog';
 import { SeguridadService } from '@core/services/seguridad.service';
 import { ToastService } from '@core/services/toast.service';
 import { extractApiErrorMessage } from '@core/models/api.model';
@@ -31,6 +32,7 @@ import { EstudianteCreateInput, EstudianteDetalle } from '@core/models/seguridad
     SelectModule,
     TextareaModule,
     SkeletonFieldComponent,
+    CambiarContrasenaDialogComponent,
   ],
   templateUrl: './estudiante-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,6 +60,8 @@ export class EstudianteFormComponent implements OnInit {
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly isToggling = signal(false);
+  protected readonly dialogContrasenaVisible = signal(false);
+  protected readonly isSavingContrasena = signal(false);
 
   protected readonly esNuevo = computed(() => this.idEstudiante() === null);
   protected readonly isActive = computed(() => this.estudiante()?.is_active ?? true);
@@ -196,6 +200,23 @@ export class EstudianteFormComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.toast.error(extractApiErrorMessage(err));
         this.isToggling.set(false);
+      },
+    });
+  }
+
+  cambiarContrasena(nuevaContrasena: string) {
+    const id = this.idEstudiante();
+    if (!id || this.isSavingContrasena()) return;
+    this.isSavingContrasena.set(true);
+    this.seguridadService.cambiarContrasenaEstudiante(id, nuevaContrasena).subscribe({
+      next: () => {
+        this.isSavingContrasena.set(false);
+        this.dialogContrasenaVisible.set(false);
+        this.toast.success('Contraseña actualizada correctamente.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toast.error(extractApiErrorMessage(err));
+        this.isSavingContrasena.set(false);
       },
     });
   }

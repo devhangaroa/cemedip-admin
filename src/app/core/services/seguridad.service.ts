@@ -114,4 +114,18 @@ export class SeguridadService {
       {},
     );
   }
+
+  cambiarContrasenaEstudiante(id: number, nuevaContrasena: string): Observable<ApiSuccessResponse<void>> {
+    return this.http.post<ApiSuccessResponse<void>>(
+      `${API_BASE_URL}/admin/seguridad/estudiantes/${id}/cambiar-contrasena/`,
+      { nueva_contrasena: nuevaContrasena },
+    );
+  }
+
+  cambiarContrasenaAdministrador(id: number, nuevaContrasena: string): Observable<ApiSuccessResponse<void>> {
+    return this.http.post<ApiSuccessResponse<void>>(
+      `${API_BASE_URL}/admin/seguridad/administradores/${id}/cambiar-contrasena/`,
+      { nueva_contrasena: nuevaContrasena },
+    );
+  }
 }

@@ -12,6 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonFieldComponent } from '@shared/components/skeleton-field/skeleton-field';
+import { CambiarContrasenaDialogComponent } from '@shared/components/cambiar-contrasena-dialog/cambiar-contrasena-dialog';
 import { SeguridadService } from '@core/services/seguridad.service';
 import { ToastService } from '@core/services/toast.service';
 import { extractApiErrorMessage } from '@core/models/api.model';
@@ -25,6 +26,7 @@ import { AdministradorDetalle } from '@core/models/seguridad.model';
     ButtonModule,
     InputTextModule,
     SkeletonFieldComponent,
+    CambiarContrasenaDialogComponent,
   ],
   templateUrl: './administrador-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +44,8 @@ export class AdministradorFormComponent implements OnInit {
   protected readonly isSaving = signal(false);
   protected readonly isToggling = signal(false);
   protected readonly formSubmitted = signal(false);
+  protected readonly dialogContrasenaVisible = signal(false);
+  protected readonly isSavingContrasena = signal(false);
 
   protected readonly esNuevo = computed(() => this.idAdministrador() === null);
   protected readonly isActive = computed(() => this.administrador()?.is_active ?? true);
@@ -121,6 +125,23 @@ export class AdministradorFormComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.toast.error(extractApiErrorMessage(err));
         this.isSaving.set(false);
+      },
+    });
+  }
+
+  cambiarContrasena(nuevaContrasena: string) {
+    const id = this.idAdministrador();
+    if (!id || this.isSavingContrasena()) return;
+    this.isSavingContrasena.set(true);
+    this.seguridadService.cambiarContrasenaAdministrador(id, nuevaContrasena).subscribe({
+      next: () => {
+        this.isSavingContrasena.set(false);
+        this.dialogContrasenaVisible.set(false);
+        this.toast.success('Contraseña actualizada correctamente.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toast.error(extractApiErrorMessage(err));
+        this.isSavingContrasena.set(false);
       },
     });
   }
