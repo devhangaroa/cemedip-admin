@@ -22,6 +22,7 @@ export class ExamenFormComponent {
 
   readonly tabs = [
     { label: 'Configuración', slug: 'configuracion' },
+    { label: 'Cuestionario', slug: 'cuestionario' },
     { label: 'Resultados', slug: 'resultados' },
   ];
 }

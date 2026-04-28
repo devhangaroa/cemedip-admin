@@ -156,6 +156,29 @@ export interface ExamenResultadosData {
   intentos: ExamenResultadoIntento[];
 }
 
+export interface CuestionarioPregunta {
+  orden: number;
+  id_pregunta: number;
+  codigo: string | null;
+  especialidad: string | null;
+  enunciado: string;
+  total_respuestas: number;
+  correctas: number;
+  incorrectas: number;
+  sin_responder: number;
+}
+
+export interface CuestionarioRespuesta {
+  intento_id: number;
+  nombres: string | null;
+  apellidos: string | null;
+  identificacion: string | null;
+  es_correcta: boolean;
+  es_sin_responder: boolean;
+  alternativa_elegida: string | null;
+  puntaje: string | null;
+}
+
 export interface GraficosPeriodo {
   label: string;
   intentos: number;

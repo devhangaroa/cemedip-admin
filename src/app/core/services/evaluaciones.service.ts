@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/constants/api';
 import { ApiSuccessResponse } from '@core/models/api.model';
-import { Examen, ExamenDetalle, ExamenFormInput, ExamenesFiltros, ExamenResultadosData, GraficosData, Intento, IntentoDetalleAdmin, IntentosFiltros, ReportePregunta, ReportesFiltros } from '@core/models/evaluaciones.model';
+import { CuestionarioPregunta, CuestionarioRespuesta, Examen, ExamenDetalle, ExamenFormInput, ExamenesFiltros, ExamenResultadosData, GraficosData, Intento, IntentoDetalleAdmin, IntentosFiltros, ReportePregunta, ReportesFiltros } from '@core/models/evaluaciones.model';
 
 @Injectable({ providedIn: 'root' })
 export class EvaluacionesService {
@@ -147,6 +147,32 @@ export class EvaluacionesService {
     return this.http.post<ApiSuccessResponse<{ resueltos: number }>>(
       `${API_BASE_URL}/admin/evaluaciones/reportes/resolver/`,
       { ids, estado, respuesta_solucion },
+    );
+  }
+
+  getCuestionarioExamen(idExamen: number): Observable<ApiSuccessResponse<CuestionarioPregunta[]>> {
+    return this.http.get<ApiSuccessResponse<CuestionarioPregunta[]>>(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/cuestionario/`,
+    );
+  }
+
+  getRespuestasPregunta(idExamen: number, idPregunta: number): Observable<ApiSuccessResponse<CuestionarioRespuesta[]>> {
+    return this.http.get<ApiSuccessResponse<CuestionarioRespuesta[]>>(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/preguntas/${idPregunta}/respuestas/`,
+    );
+  }
+
+  recalificarPregunta(idExamen: number, idPregunta: number): Observable<ApiSuccessResponse<{ intentos_afectados: number }>> {
+    return this.http.post<ApiSuccessResponse<{ intentos_afectados: number }>>(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/preguntas/${idPregunta}/recalificar/`,
+      {},
+    );
+  }
+
+  recalificarPreguntaIndividual(idExamen: number, idPregunta: number, intentoId: number): Observable<ApiSuccessResponse<{ intento_id: number; puntaje_obtenido: string }>> {
+    return this.http.post<ApiSuccessResponse<{ intento_id: number; puntaje_obtenido: string }>>(
+      `${API_BASE_URL}/admin/evaluaciones/examenes/${idExamen}/preguntas/${idPregunta}/recalificar-individual/`,
+      { intento_id: intentoId },
     );
   }
 

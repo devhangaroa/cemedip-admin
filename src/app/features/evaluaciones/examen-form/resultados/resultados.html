@@ -77,11 +77,10 @@
 
         <tbody>
           @for (r of intentos(); track r.id_intento) {
-            <tr [class]="r.es_ultimo_intento ? 'bg-green-50 hover:bg-green-100' : 'bg-surface-100 hover:bg-surface-200'">
+            <tr class="bg-surface-100 hover:bg-surface-200">
               <td
-                class="sticky left-0 z-10 px-3 py-2.5"
+                class="sticky left-0 z-10 px-3 py-2.5 bg-surface-100"
                 style="min-width: 220px"
-                [class]="r.es_ultimo_intento ? 'bg-green-50' : 'bg-surface-100'"
               >
                 <div class="font-semibold text-surface-700 leading-tight">
                   {{ r.apellidos ?? '-' }}, {{ r.nombres ?? '-' }}
