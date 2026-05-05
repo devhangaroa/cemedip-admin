@@ -50,9 +50,9 @@ export class EstudianteFormComponent implements OnInit {
   ];
 
   protected readonly generoOpciones = [
-    { label: 'Masculino', value: 'Masculino' },
-    { label: 'Femenino', value: 'Femenino' },
-    { label: 'Otro', value: 'Otro' },
+    { label: 'Masculino', value: 'masculino' },
+    { label: 'Femenino', value: 'femenino' },
+    { label: 'Otro', value: 'otro' },
   ];
 
   protected readonly idEstudiante = signal<number | null>(null);
