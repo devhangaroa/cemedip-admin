@@ -163,7 +163,10 @@
           @if (r.pregunta.codigo) { <span>{{ r.pregunta.codigo }}</span><span>·</span> }
           <span>{{ r.tipo_intento === 'examen' ? 'Examen' : 'Training' }}</span>
         </div>
-        <p class="text-sm leading-relaxed text-surface-700">{{ r.pregunta.enunciado ?? '(sin enunciado)' }}</p>
+        
+        <p class="text-sm leading-relaxed text-surface-700">
+          <span class="text-sm leading-relaxed text-surface-500">({{r.pregunta.anho}})</span>
+          {{ r.pregunta.enunciado ?? '(sin enunciado)' }}</p>
       </div>
 
       <!-- Alternativas -->
@@ -183,6 +186,19 @@
               @if (alt.es_correcta) { <i class="pi pi-check shrink-0 text-green-600"></i> }
               @else if (alt.es_elegida) { <i class="pi pi-times shrink-0 text-red-500"></i> }
             </div>
+          }
+        </div>
+      }
+
+      <!-- Feedback / Justificación -->
+      @if (r.pregunta.justificacion) {
+        <div class="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm">
+          <p class="mb-1.5 text-xs font-semibold tracking-wide text-blue-400">JUSTIFICACIÓN</p>
+          <p class="leading-relaxed text-blue-900">{{ r.pregunta.justificacion }}</p>
+          @if (r.pregunta.fuente) {
+            <p class="mt-2 text-xs text-blue-500 italic">
+              <span class="font-semibold not-italic">Fuente:</span> {{ r.pregunta.fuente }}
+            </p>
           }
         </div>
       }

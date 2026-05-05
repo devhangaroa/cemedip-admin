@@ -213,9 +213,12 @@ export interface ReportePregunta {
   tipo_intento: 'training' | 'examen';
   pregunta: {
     id_pregunta: number | null;
+    anho: string | null;
     codigo: string | null;
     enunciado: string | null;
     especialidad: string | null;
+    justificacion: string | null;
+    fuente: string | null;
   };
   estudiante: {
     nombres: string | null;
