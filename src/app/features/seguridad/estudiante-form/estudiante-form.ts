@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   signal,
@@ -9,17 +10,24 @@ import {
 import { HttpErrorResponse } from '@angular/common/http';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmationService } from 'primeng/api';
 import { SkeletonFieldComponent } from '@shared/components/skeleton-field/skeleton-field';
 import { CambiarContrasenaDialogComponent } from '@shared/components/cambiar-contrasena-dialog/cambiar-contrasena-dialog';
 import { SeguridadService } from '@core/services/seguridad.service';
+import { CursosService } from '@core/services/cursos.service';
 import { ToastService } from '@core/services/toast.service';
 import { extractApiErrorMessage } from '@core/models/api.model';
 import { EstudianteCreateInput, EstudianteDetalle } from '@core/models/seguridad.model';
+import { Curso } from '@core/models/cursos.model';
 
 @Component({
   selector: 'app-estudiante-form',
@@ -31,9 +39,13 @@ import { EstudianteCreateInput, EstudianteDetalle } from '@core/models/seguridad
     InputTextModule,
     SelectModule,
     TextareaModule,
+    PaginatorModule,
+    ConfirmDialogModule,
+    DialogModule,
     SkeletonFieldComponent,
     CambiarContrasenaDialogComponent,
   ],
+  providers: [ConfirmationService],
   templateUrl: './estudiante-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -42,7 +54,20 @@ export class EstudianteFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private seguridadService = inject(SeguridadService);
+  private cursosService = inject(CursosService);
+  private confirmationService = inject(ConfirmationService);
   private toast = inject(ToastService);
+
+  protected readonly estadoLabels: Record<string, string> = {
+    sin_iniciar: 'Sin Iniciar',
+    en_curso: 'En Curso',
+    finalizado: 'Finalizado',
+  };
+  protected readonly estadoClasses: Record<string, string> = {
+    sin_iniciar: 'bg-gray-100 text-gray-700',
+    en_curso: 'bg-blue-100 text-blue-700',
+    finalizado: 'bg-green-100 text-green-700',
+  };
 
   protected readonly tipoIdentificacionOpciones = [
     { label: 'Cédula', value: 'cedula' },
@@ -69,6 +94,112 @@ export class EstudianteFormComponent implements OnInit {
   protected readonly usernameDisplay = signal('');
 
   protected readonly skeletonFields = Array.from({ length: 10 });
+
+  // --- Cursos inscritos ---
+  private readonly cursosFiltros = signal<{ page: number; page_size: number }>({ page: 1, page_size: 10 });
+
+  protected readonly cursosInscritosResource = rxResource({
+    params: () => {
+      const id = this.idEstudiante();
+      if (!id) return undefined;
+      return { id, ...this.cursosFiltros() };
+    },
+    stream: ({ params }) =>
+      this.cursosService.getCursosDeEstudiante(params.id, {
+        page: params.page,
+        page_size: params.page_size,
+      }),
+  });
+
+  protected readonly cursosInscritos = computed(() => this.cursosInscritosResource.value()?.data ?? []);
+  protected readonly cursosPaginador = computed(() => this.cursosInscritosResource.value()?.data_paginador ?? null);
+  protected readonly isLoadingCursos = computed(() => this.cursosInscritosResource.isLoading());
+  protected readonly totalCursos = computed(() => this.cursosPaginador()?.total_registros ?? 0);
+  protected readonly cursosPageSize = signal(10);
+  protected readonly cursosPaginaActual = computed(
+    () => ((this.cursosPaginador()?.pagina_actual ?? 1) - 1) * this.cursosPageSize(),
+  );
+
+  private readonly _errCursos = effect(() => {
+    const error = this.cursosInscritosResource.error() as HttpErrorResponse | null;
+    if (error) this.toast.error(extractApiErrorMessage(error));
+  });
+
+  onCursosPageChange(event: PaginatorState) {
+    const page_size = event.rows ?? 10;
+    const sizeChanged = page_size !== this.cursosPageSize();
+    const page = sizeChanged ? 1 : (event.page ?? 0) + 1;
+    this.cursosPageSize.set(page_size);
+    this.cursosFiltros.update((f) => ({ ...f, page, page_size }));
+  }
+
+  confirmarDesinscribirCurso(idInscripcion: number, idCurso: number, nombreCurso: string) {
+    this.confirmationService.confirm({
+      message: `¿Desea quitar al estudiante del curso <strong>${nombreCurso}</strong>?`,
+      header: 'Confirmar',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sí, quitar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.cursosService.desinscribirEstudiante(idCurso, idInscripcion).subscribe({
+          next: () => {
+            this.toast.success(`Estudiante removido del curso "${nombreCurso}".`);
+            this.cursosInscritosResource.reload();
+          },
+          error: (err: HttpErrorResponse) => this.toast.error(extractApiErrorMessage(err)),
+        });
+      },
+    });
+  }
+
+  // --- Dialog agregar curso ---
+  protected readonly dialogCursosVisible = signal(false);
+  protected readonly dialogCursosBuscarForm = this.fb.group({ nombre: [''], codigo: [''] });
+  protected readonly dialogCursosResultados = signal<Curso[]>([]);
+  protected readonly isLoadingDialogCursos = signal(false);
+  protected readonly inscribiendoCursoIds = signal(new Set<number>());
+
+  abrirDialogCursos() {
+    this.dialogCursosBuscarForm.reset();
+    this.dialogCursosResultados.set([]);
+    this.dialogCursosVisible.set(true);
+    this.buscarCursosEnDialog();
+  }
+
+  buscarCursosEnDialog() {
+    const { nombre, codigo } = this.dialogCursosBuscarForm.getRawValue();
+    this.isLoadingDialogCursos.set(true);
+    this.cursosService
+      .getCursos({ page: 1, page_size: 20, nombre: nombre || undefined, codigo: codigo || undefined, es_activo: true })
+      .subscribe({
+        next: (res) => {
+          this.dialogCursosResultados.set(res.data ?? []);
+          this.isLoadingDialogCursos.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.toast.error(extractApiErrorMessage(err));
+          this.isLoadingDialogCursos.set(false);
+        },
+      });
+  }
+
+  inscribirEnCurso(idCurso: number) {
+    const id = this.idEstudiante();
+    if (!id) return;
+    this.inscribiendoCursoIds.update((s) => new Set([...s, idCurso]));
+    this.cursosService.inscribirEstudiante(idCurso, id).subscribe({
+      next: () => {
+        this.inscribiendoCursoIds.update((s) => { const n = new Set(s); n.delete(idCurso); return n; });
+        this.toast.success('Estudiante inscrito correctamente.');
+        this.cursosInscritosResource.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.inscribiendoCursoIds.update((s) => { const n = new Set(s); n.delete(idCurso); return n; });
+        this.toast.error(extractApiErrorMessage(err));
+      },
+    });
+  }
 
   protected ctrl(name: string) {
     return this.form.get(name)!;

@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@core/constants/api';
 import { ApiSuccessResponse } from '@core/models/api.model';
 import {
   Curso,
+  CursoDeEstudiante,
   CursoDetalle,
   CursoEstudianteInscrito,
   CursosFiltros,
@@ -21,6 +22,7 @@ export class CursosService {
     if (filtros.page) params = params.set('page', filtros.page);
     if (filtros.page_size) params = params.set('page_size', filtros.page_size);
     if (filtros.nombre) params = params.set('nombre', filtros.nombre);
+    if (filtros.codigo) params = params.set('codigo', filtros.codigo);
     if (filtros.fecha_inicio_desde) params = params.set('fecha_inicio_desde', filtros.fecha_inicio_desde);
     if (filtros.fecha_fin_hasta) params = params.set('fecha_fin_hasta', filtros.fecha_fin_hasta);
     if (filtros.estado) params = params.set('estado', filtros.estado);
@@ -73,6 +75,19 @@ export class CursosService {
   desinscribirEstudiante(id_curso: number, id_inscripcion: number): Observable<ApiSuccessResponse<void>> {
     return this.http.delete<ApiSuccessResponse<void>>(
       `${API_BASE_URL}/admin/cursos/${id_curso}/estudiantes/${id_inscripcion}/`,
+    );
+  }
+
+  getCursosDeEstudiante(
+    id_estudiante: number,
+    filtros: { page?: number; page_size?: number },
+  ): Observable<ApiSuccessResponse<CursoDeEstudiante[]>> {
+    let params = new HttpParams();
+    if (filtros.page) params = params.set('page', filtros.page);
+    if (filtros.page_size) params = params.set('page_size', filtros.page_size);
+    return this.http.get<ApiSuccessResponse<CursoDeEstudiante[]>>(
+      `${API_BASE_URL}/admin/seguridad/estudiantes/${id_estudiante}/cursos/`,
+      { params },
     );
   }
 }

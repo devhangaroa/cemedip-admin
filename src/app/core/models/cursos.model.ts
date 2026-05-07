@@ -41,10 +41,22 @@ export interface CursosFiltros {
   page?: number;
   page_size?: number;
   nombre?: string;
+  codigo?: string;
   fecha_inicio_desde?: string;
   fecha_fin_hasta?: string;
   estado?: EstadoCurso;
   es_activo?: boolean;
+}
+
+export interface CursoDeEstudiante {
+  id_inscripcion: number;
+  id_curso: number;
+  codigo: string;
+  nombre: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estado_del_curso: EstadoCurso;
+  es_activo_curso: boolean;
 }
 
 export interface EstudiantesInscritosFiltros {
