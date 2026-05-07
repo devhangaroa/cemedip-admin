@@ -19,6 +19,7 @@ export interface EstudianteDetalle {
   correo_personal: string | null;
   telefono_convencional: string | null;
   telefono_celular: string | null;
+  universidad: string | null;
   foto_perfil: string | null;
   direccion: string | null;
   fecha_nacimiento: string | null;
@@ -36,6 +37,7 @@ export interface EstudianteCreateInput {
   correo_personal?: string | null;
   telefono_convencional?: string | null;
   telefono_celular?: string | null;
+  universidad?: string | null;
   direccion?: string | null;
   fecha_nacimiento?: string | null;
   genero?: string | null;
