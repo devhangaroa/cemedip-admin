@@ -78,6 +78,13 @@ export class CursosService {
     );
   }
 
+  inscribirTodosEnCurso(id_curso: number): Observable<ApiSuccessResponse<{ inscritos: number }>> {
+    return this.http.post<ApiSuccessResponse<{ inscritos: number }>>(
+      `${API_BASE_URL}/admin/cursos/${id_curso}/estudiantes/inscribir-todos/`,
+      {},
+    );
+  }
+
   getCursosDeEstudiante(
     id_estudiante: number,
     filtros: { page?: number; page_size?: number },

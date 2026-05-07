@@ -35,6 +35,7 @@ export interface CursoEstudianteInscrito {
   nombres: string | null;
   apellidos: string | null;
   identificacion: string | null;
+  correo_institucional: string | null;
 }
 
 export interface CursosFiltros {

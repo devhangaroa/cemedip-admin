@@ -31,7 +31,7 @@
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div class="flex flex-col gap-0.5">
           <span class="text-xs font-semibold tracking-wide text-surface-500">CÓDIGO</span>
-          <span class="font-mono text-sm text-surface-800">{{ c.codigo }}</span>
+          <span class="text-sm text-surface-800">{{ c.codigo }}</span>
         </div>
         <div class="flex flex-col gap-0.5 sm:col-span-2 lg:col-span-1">
           <span class="text-xs font-semibold tracking-wide text-surface-500">NOMBRE</span>
@@ -76,14 +76,23 @@
   <div class="flex flex-col gap-4">
 
     <!-- Encabezado sección -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
       <h2 class="text-lg font-bold tracking-wide text-surface-700">ESTUDIANTES INSCRITOS</h2>
-      <p-button
-        label="AGREGAR"
-        icon="pi pi-user-plus"
-        severity="secondary"
-        (click)="abrirDialog()"
-      />
+      <div class="flex gap-2">
+        <p-button
+          label="INSCRIBIR TODOS"
+          icon="pi pi-users"
+          severity="secondary"
+          [loading]="inscribiendoTodos()"
+          (click)="inscribirTodos()"
+        />
+        <p-button
+          label="AGREGAR"
+          icon="pi pi-user-plus"
+          severity="secondary"
+          (click)="abrirDialog()"
+        />
+      </div>
     </div>
 
     <!-- Filtros -->
@@ -123,6 +132,7 @@
           <th class="px-4 py-3">NOMBRES</th>
           <th class="px-4 py-3">APELLIDOS</th>
           <th class="px-4 py-3 hidden md:table-cell">IDENTIFICACIÓN</th>
+          <th class="px-4 py-3 hidden lg:table-cell">CORREO</th>
           <th class="px-4 py-3">ACCIÓN</th>
         </tr>
       </thead>
@@ -130,14 +140,14 @@
         @if (isLoadingInscritos()) {
           @for (i of [1,2,3,4,5]; track i) {
             <tr class="bg-surface-200">
-              <td colspan="5" class="px-4 py-4">
+              <td colspan="6" class="px-4 py-4">
                 <div class="h-4 w-full animate-pulse rounded bg-surface-300"></div>
               </td>
             </tr>
           }
         } @else if (inscritos().length === 0) {
           <tr class="bg-surface-200">
-            <td colspan="5" class="px-4 py-12 text-surface-400">
+            <td colspan="6" class="px-4 py-12 text-surface-400">
               <i class="pi pi-users mb-3 text-4xl block"></i>
               No hay estudiantes inscritos con los filtros aplicados.
             </td>
@@ -149,6 +159,7 @@
               <td class="px-4 py-3">{{ est.nombres ?? '—' }}</td>
               <td class="px-4 py-3">{{ est.apellidos ?? '—' }}</td>
               <td class="px-4 py-3 hidden md:table-cell">{{ est.identificacion ?? '—' }}</td>
+              <td class="px-4 py-3 hidden lg:table-cell text-xs">{{ est.correo_institucional ?? '—' }}</td>
               <td class="px-4 py-3">
                 <p-button
                   icon="pi pi-user-minus"

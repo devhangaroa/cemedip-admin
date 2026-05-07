@@ -147,6 +147,34 @@ export class CursoDetalleComponent {
     });
   }
 
+  // --- Inscribir todos ---
+  protected readonly inscribiendoTodos = signal(false);
+
+  inscribirTodos() {
+    this.confirmationService.confirm({
+      message: '¿Desea inscribir a <strong>todos los estudiantes</strong> que aún no están en este curso?',
+      header: 'Confirmar inscripción masiva',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sí, inscribir todos',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.inscribiendoTodos.set(true);
+        this.cursosService.inscribirTodosEnCurso(this.idCurso()).subscribe({
+          next: (res) => {
+            this.inscribiendoTodos.set(false);
+            const n = res.data?.inscritos ?? 0;
+            this.toast.success(`Se inscribieron ${n} estudiante${n !== 1 ? 's' : ''} al curso.`);
+            this.inscritosResource.reload();
+          },
+          error: (err: HttpErrorResponse) => {
+            this.inscribiendoTodos.set(false);
+            this.toast.error(extractApiErrorMessage(err));
+          },
+        });
+      },
+    });
+  }
+
   // --- Diálogo agregar estudiante ---
   protected readonly dialogVisible = signal(false);
 

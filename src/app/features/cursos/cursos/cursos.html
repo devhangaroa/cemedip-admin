@@ -110,7 +110,7 @@
           @for (curso of cursos(); track curso.id_curso) {
             <tr class="bg-surface-200 text-black transition-colors hover:bg-surface-300">
               <td class="px-4 py-3">{{ curso.id_curso }}</td>
-              <td class="px-4 py-3 font-mono text-xs hidden sm:table-cell">{{ curso.codigo }}</td>
+              <td class="px-4 py-3 text-xs hidden sm:table-cell">{{ curso.codigo }}</td>
               <td class="px-4 py-3 text-left">{{ curso.nombre }}</td>
               <td class="px-4 py-3 hidden lg:table-cell">{{ curso.fecha_inicio }}</td>
               <td class="px-4 py-3 hidden lg:table-cell">{{ curso.fecha_fin }}</td>
