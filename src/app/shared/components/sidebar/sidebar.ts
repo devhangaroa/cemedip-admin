@@ -34,6 +34,18 @@ import { NgOptimizedImage } from '@angular/common';
           @if (open()) { <span class="text-sm">Preguntas</span> }
         </a>
 
+        <a
+          routerLink="/cursos"
+          routerLinkActive="bg-primary/10 text-primary font-semibold hover:bg-primary/20"
+          [title]="!open() ? 'Cursos' : ''"
+          class="flex items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-100"
+          [class.justify-center]="!open()"
+          (click)="navItemClick.emit()"
+        >
+          <i class="pi pi-book text-lg flex-shrink-0"></i>
+          @if (open()) { <span class="text-sm">Cursos</span> }
+        </a>
+
         <div>
           <button
             class="flex w-[calc(100%-16px)] items-center gap-3 mx-2 px-3 py-3 rounded-xl text-surface-600 transition-colors hover:bg-surface-100"

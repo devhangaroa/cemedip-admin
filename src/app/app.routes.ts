@@ -133,6 +133,26 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'cursos',
+        loadComponent: () =>
+          import('@features/cursos/cursos/cursos').then((m) => m.CursosComponent),
+      },
+      {
+        path: 'cursos/nuevo',
+        loadComponent: () =>
+          import('@features/cursos/curso-form/curso-form').then((m) => m.CursoFormComponent),
+      },
+      {
+        path: 'cursos/:id/editar',
+        loadComponent: () =>
+          import('@features/cursos/curso-form/curso-form').then((m) => m.CursoFormComponent),
+      },
+      {
+        path: 'cursos/:id',
+        loadComponent: () =>
+          import('@features/cursos/curso-detalle/curso-detalle').then((m) => m.CursoDetalleComponent),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

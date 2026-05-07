@@ -2,6 +2,7 @@ export interface Estudiante {
   id_estudiante: number;
   nombres: string | null;
   apellidos: string | null;
+  identificacion: string | null;
   correo_institucional: string;
   foto_perfil: string | null;
   is_active: boolean;

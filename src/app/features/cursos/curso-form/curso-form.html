@@ -1,0 +1,104 @@
+<div class="flex flex-col gap-6">
+
+  <div class="flex items-center gap-3">
+    <a [routerLink]="backLink()" class="text-surface-500 hover:text-primary transition-colors">
+      <i class="pi pi-chevron-left text-lg"></i>
+    </a>
+    <h1 class="text-2xl font-bold tracking-wide text-surface-700">
+      {{ esNuevo() ? 'NUEVO CURSO' : 'EDITAR CURSO' }}
+    </h1>
+  </div>
+
+  @if (isLoading()) {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      @for (f of skeletonFields; track $index) {
+        <app-skeleton-field [hostClass]="$index === 1 ? 'sm:col-span-2' : ''" />
+      }
+    </div>
+  } @else {
+
+    <form [formGroup]="form" (ngSubmit)="guardar()"
+          class="flex flex-col gap-6 transition-opacity duration-200"
+          [class.app-form-busy]="isSaving()">
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        <!-- Código -->
+        <div class="flex flex-col gap-1">
+          <label for="cf_codigo" class="text-xs font-semibold tracking-wide text-surface-500">CÓDIGO</label>
+          <input id="cf_codigo" pInputText formControlName="codigo" placeholder="Ej. CURSO-001"
+                 [class.border-red-400]="fieldInvalid('codigo')" />
+          @if (fieldInvalid('codigo')) {
+            <span class="app-form-error text-xs">El código es requerido.</span>
+          }
+        </div>
+
+        <!-- Nombre -->
+        <div class="flex flex-col gap-1 sm:col-span-2">
+          <label for="cf_nombre" class="text-xs font-semibold tracking-wide text-surface-500">NOMBRE</label>
+          <input id="cf_nombre" pInputText formControlName="nombre" placeholder="Nombre del curso"
+                 [class.border-red-400]="fieldInvalid('nombre')" />
+          @if (fieldInvalid('nombre')) {
+            <span class="app-form-error text-xs">El nombre es requerido.</span>
+          }
+        </div>
+
+        <!-- Fecha de inicio -->
+        <div class="flex flex-col gap-1">
+          <label for="cf_fecha_inicio" class="text-xs font-semibold tracking-wide text-surface-500">FECHA DE INICIO</label>
+          <p-datepicker
+            id="cf_fecha_inicio"
+            formControlName="fecha_inicio"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            placeholder="DD/MM/AAAA"
+            styleClass="w-full"
+          />
+          @if (fieldInvalid('fecha_inicio')) {
+            <span class="app-form-error text-xs">La fecha de inicio es requerida.</span>
+          }
+        </div>
+
+        <!-- Fecha de fin -->
+        <div class="flex flex-col gap-1">
+          <label for="cf_fecha_fin" class="text-xs font-semibold tracking-wide text-surface-500">FECHA DE FIN</label>
+          <p-datepicker
+            id="cf_fecha_fin"
+            formControlName="fecha_fin"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            placeholder="DD/MM/AAAA"
+            styleClass="w-full"
+          />
+          @if (fieldInvalid('fecha_fin')) {
+            <span class="app-form-error text-xs">La fecha de fin es requerida.</span>
+          }
+        </div>
+
+        <!-- Activo -->
+        <div class="flex flex-col gap-1">
+          <label for="cf_activo" class="text-xs font-semibold tracking-wide text-surface-500">ACTIVO</label>
+          <p-select
+            id="cf_activo"
+            formControlName="es_activo"
+            [options]="activoOpciones"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="app-select-field"
+          />
+        </div>
+
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <p-button
+          type="submit"
+          [label]="esNuevo() ? 'Crear Curso' : 'Guardar Cambios'"
+          [loading]="isSaving()"
+        />
+      </div>
+
+    </form>
+  }
+
+</div>

@@ -1,0 +1,267 @@
+<p-confirm-dialog />
+
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div class="flex items-center gap-3">
+    <p-button
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      size="small"
+      [pt]="{ root: { class: 'w-9 h-9' } }"
+      routerLink="/cursos"
+    />
+    <h1 class="text-2xl font-bold tracking-wide text-surface-700">DETALLE DE CURSO</h1>
+  </div>
+
+  <!-- Info del curso -->
+  @if (isCursoLoading()) {
+    <div class="rounded-xl border border-surface-200 bg-surface-50 p-5">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="flex flex-col gap-1.5">
+            <div class="h-3 w-20 animate-pulse rounded bg-surface-300"></div>
+            <div class="h-5 w-36 animate-pulse rounded bg-surface-300"></div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (curso(); as c) {
+    <div class="rounded-xl border border-surface-200 bg-surface-50 p-5">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs font-semibold tracking-wide text-surface-500">CÓDIGO</span>
+          <span class="font-mono text-sm text-surface-800">{{ c.codigo }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5 sm:col-span-2 lg:col-span-1">
+          <span class="text-xs font-semibold tracking-wide text-surface-500">NOMBRE</span>
+          <span class="text-sm font-medium text-surface-800">{{ c.nombre }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs font-semibold tracking-wide text-surface-500">FECHA INICIO</span>
+          <span class="text-sm text-surface-700">{{ c.fecha_inicio }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs font-semibold tracking-wide text-surface-500">FECHA FIN</span>
+          <span class="text-sm text-surface-700">{{ c.fecha_fin }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs font-semibold tracking-wide text-surface-500">ESTADO</span>
+          <span
+            class="inline-block w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            [class]="estadoClasses[c.estado_del_curso]"
+          >
+            {{ estadoLabels[c.estado_del_curso] }}
+          </span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs font-semibold tracking-wide text-surface-500">ACTIVO</span>
+          <span
+            class="inline-block w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            [class]="c.es_activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+          >
+            {{ c.es_activo ? 'Sí' : 'No' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="rounded-xl border border-surface-200 bg-surface-50 p-8 text-center text-surface-400">
+      <i class="pi pi-exclamation-circle mb-2 text-3xl block"></i>
+      Curso no encontrado.
+    </div>
+  }
+
+  <!-- Sección estudiantes inscritos -->
+  <div class="flex flex-col gap-4">
+
+    <!-- Encabezado sección -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold tracking-wide text-surface-700">ESTUDIANTES INSCRITOS</h2>
+      <p-button
+        label="AGREGAR"
+        icon="pi pi-user-plus"
+        severity="secondary"
+        (click)="abrirDialog()"
+      />
+    </div>
+
+    <!-- Filtros -->
+    <form [formGroup]="inscritosFiltrosForm" (ngSubmit)="buscarInscritos()" class="flex flex-col gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="flex flex-col gap-1">
+          <label for="ins_nombres" class="text-xs font-semibold tracking-wide text-surface-500">NOMBRES</label>
+          <input id="ins_nombres" pInputText formControlName="nombres" placeholder="Buscar por nombre" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="ins_apellidos" class="text-xs font-semibold tracking-wide text-surface-500">APELLIDOS</label>
+          <input id="ins_apellidos" pInputText formControlName="apellidos" placeholder="Buscar por apellido" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="ins_identificacion" class="text-xs font-semibold tracking-wide text-surface-500">IDENTIFICACIÓN</label>
+          <input id="ins_identificacion" pInputText formControlName="identificacion" placeholder="Buscar por identificación" />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <p-button type="submit" label="Buscar" [loading]="isLoadingInscritos()" />
+        <p-button
+          type="button"
+          icon="pi pi-trash"
+          severity="primary"
+          (click)="limpiarInscritos()"
+          [disabled]="isLoadingInscritos()"
+        />
+      </div>
+    </form>
+
+    <!-- Tabla inscritos -->
+    <table class="w-full text-sm border-separate border-spacing-y-1.5 text-center">
+      <thead>
+        <tr class="bg-primary text-white font-semibold tracking-wide">
+          <th class="px-4 py-3">ID</th>
+          <th class="px-4 py-3">NOMBRES</th>
+          <th class="px-4 py-3">APELLIDOS</th>
+          <th class="px-4 py-3 hidden md:table-cell">IDENTIFICACIÓN</th>
+          <th class="px-4 py-3">ACCIÓN</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoadingInscritos()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="bg-surface-200">
+              <td colspan="5" class="px-4 py-4">
+                <div class="h-4 w-full animate-pulse rounded bg-surface-300"></div>
+              </td>
+            </tr>
+          }
+        } @else if (inscritos().length === 0) {
+          <tr class="bg-surface-200">
+            <td colspan="5" class="px-4 py-12 text-surface-400">
+              <i class="pi pi-users mb-3 text-4xl block"></i>
+              No hay estudiantes inscritos con los filtros aplicados.
+            </td>
+          </tr>
+        } @else {
+          @for (est of inscritos(); track est.id_estudiante_curso) {
+            <tr class="bg-surface-200 text-black transition-colors hover:bg-surface-300">
+              <td class="px-4 py-3">{{ est.id_estudiante }}</td>
+              <td class="px-4 py-3">{{ est.nombres ?? '—' }}</td>
+              <td class="px-4 py-3">{{ est.apellidos ?? '—' }}</td>
+              <td class="px-4 py-3 hidden md:table-cell">{{ est.identificacion ?? '—' }}</td>
+              <td class="px-4 py-3">
+                <p-button
+                  icon="pi pi-user-minus"
+                  severity="danger"
+                  size="small"
+                  [pt]="{ root: { class: 'w-8 h-8' } }"
+                  (click)="confirmarDesinscribir(est.id_estudiante_curso, (est.nombres ?? '') + ' ' + (est.apellidos ?? ''))"
+                />
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    <!-- Paginación inscritos -->
+    @if (inscritosPaginador()) {
+      <p-paginator
+        [first]="inscritosPaginaActual()"
+        [rows]="inscritosPageSize()"
+        [rowsPerPageOptions]="[10, 50, 100]"
+        [totalRecords]="totalInscritos()"
+        [showFirstLastIcon]="true"
+        [showPageLinks]="true"
+        (onPageChange)="onInscritosPageChange($event)"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Total {totalRecords} estudiantes"
+      />
+    }
+
+  </div>
+
+</div>
+
+<!-- Diálogo: agregar estudiante -->
+<p-dialog
+  header="Agregar estudiante al curso"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [resizable]="false"
+  [style]="{ width: '680px', maxWidth: '95vw' }"
+>
+  <div class="flex flex-col gap-4 pt-1">
+
+    <!-- Formulario búsqueda -->
+    <form [formGroup]="dialogBuscarForm" (ngSubmit)="buscarEnDialog()" class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-col gap-1 flex-1 min-w-40">
+        <label for="dlg_nombres" class="text-xs font-semibold tracking-wide text-surface-500">NOMBRES</label>
+        <input id="dlg_nombres" pInputText formControlName="nombres" placeholder="Buscar por nombre" />
+      </div>
+      <div class="flex flex-col gap-1 flex-1 min-w-40">
+        <label for="dlg_apellidos" class="text-xs font-semibold tracking-wide text-surface-500">APELLIDOS</label>
+        <input id="dlg_apellidos" pInputText formControlName="apellidos" placeholder="Buscar por apellido" />
+      </div>
+      <p-button type="submit" label="Buscar" icon="pi pi-search" [loading]="isLoadingDialog()" />
+    </form>
+
+    <!-- Resultados -->
+    <div class="max-h-72 overflow-y-auto">
+      <table class="w-full text-sm border-separate border-spacing-y-1 text-center">
+        <thead class="sticky top-0">
+          <tr class="bg-primary text-white font-semibold tracking-wide">
+            <th class="px-3 py-2">ID</th>
+            <th class="px-3 py-2">NOMBRES</th>
+            <th class="px-3 py-2">APELLIDOS</th>
+            <th class="px-3 py-2 hidden sm:table-cell">IDENTIFICACIÓN</th>
+            <th class="px-3 py-2 hidden md:table-cell">CORREO</th>
+            <th class="px-3 py-2">ACCIÓN</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoadingDialog()) {
+            @for (i of [1,2,3]; track i) {
+              <tr class="bg-surface-200">
+                <td colspan="6" class="px-3 py-3">
+                  <div class="h-4 w-full animate-pulse rounded bg-surface-300"></div>
+                </td>
+              </tr>
+            }
+          } @else if (dialogResultados().length === 0) {
+            <tr class="bg-surface-200">
+              <td colspan="6" class="px-3 py-8 text-surface-400 text-xs">
+                No se encontraron estudiantes.
+              </td>
+            </tr>
+          } @else {
+            @for (est of dialogResultados(); track est.id_estudiante) {
+              <tr class="bg-surface-200 text-black">
+                <td class="px-3 py-2">{{ est.id_estudiante }}</td>
+                <td class="px-3 py-2">{{ est.nombres ?? '—' }}</td>
+                <td class="px-3 py-2">{{ est.apellidos ?? '—' }}</td>
+                <td class="px-3 py-2 hidden sm:table-cell">{{ est.identificacion ?? '—' }}</td>
+                <td class="px-3 py-2 hidden md:table-cell text-xs">{{ est.correo_institucional }}</td>
+                <td class="px-3 py-2">
+                  <p-button
+                    icon="pi pi-plus"
+                    size="small"
+                    [pt]="{ root: { class: 'w-8 h-8' } }"
+                    [loading]="inscribiendoIds().has(est.id_estudiante)"
+                    (click)="inscribir(est.id_estudiante)"
+                  />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-end border-t border-surface-100 pt-3">
+      <p-button label="Cerrar" severity="secondary" (click)="cerrarDialog()" />
+    </div>
+
+  </div>
+</p-dialog>
